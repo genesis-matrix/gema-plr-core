@@ -1,0 +1,13 @@
+#
+##
+### Salt Minion modular configuration
+##
+#
+
+
+
+## master
+## - set the hostname /o ipv4 address of the salt master server
+## - default-value: 'salt'
+master: localhost
+

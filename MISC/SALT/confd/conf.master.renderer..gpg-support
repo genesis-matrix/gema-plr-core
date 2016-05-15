@@ -1,0 +1,25 @@
+##
+##
+## 
+
+## DESC:
+##  - https://docs.saltstack.com/en/stage/ref/renderers/all/salt.renderers.gpg.html
+##  - Be careful to install the python-gnupg package, not the gnupg package, or you will get errors.
+##  - Do not supply a password for your keypair, and use a name that makes sense for your application. Be sure to back up your gpg directory someplace safe!
+##  - To retrieve the public key: gpg --armor --homedir /etc/salt/gpgkeys --armor --export <KEY-NAME> > exported_pubkey.gpg
+##  - Now, to encrypt secrets, copy the public key to your local machine and run: gpg --import exported_pubkey.gpg
+##  - To set things up, you will first need to generate a keypair. On your master, run: gpg --gen-key --homedir /etc/salt/gpgkeys
+##  - to generate ciphertext for a secret: echo -n "supersecret" | gpg --homedir --armor --encrypt -r <KEY-name>
+##  - include cipher text in YAML as in the below example
+##  - a-secret: |
+##      -----BEGIN PGP MESSAGE-----
+##      Version: GnuPG v1
+##
+##      hQEMAweRHKaPCfNeAQf9GLTN16hCfXAbPwU6BbBK0unOc7i9/etGuVc5CyU9Q6um
+##      skqmFTbOiA==
+##      =Eqsm
+##      -----END PGP MESSAGE-----
+##
+
+renderer: jinja | yaml | gpg
+

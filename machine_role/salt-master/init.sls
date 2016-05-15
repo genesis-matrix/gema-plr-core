@@ -1,2 +1,2 @@
 machine_role:
-  - salt-master: true
+  - salt-master

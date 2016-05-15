@@ -1,0 +1,10 @@
+##
+##
+##
+
+
+# Passing very large events can cause the minion to consume large amounts of
+# memory. This value tunes the maximum size of a message allowed onto the
+# master event bus. The value is expressed in bytes.
+#max_event_size: 1048576
+max_event_size: 0

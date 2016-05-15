@@ -24,6 +24,7 @@ salt:
       - git
       - roots
     gitfs_remotes:
+      - https://github.com/genesis-matrix/genesis-sls-core
       - https://github.com/khaije1/salt-formula:
         - mountpoint: salt://formula/salt
         - root: salt

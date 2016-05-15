@@ -1,0 +1,8 @@
+##
+##
+##
+
+
+# Return minions that timeout when running commands like test.ping
+#show_timeout: True
+show_timeout: True

@@ -1,0 +1,17 @@
+#
+##
+### Salt Master modular configuration
+##
+#
+
+
+
+## root_dir
+## - The system root directory to operate from, change this to make 
+##   Salt run from an alternative root.
+## - This directory is prepended to the following options: pki_dir,
+##   cachedir, sock_dir, log_file, autosign_file, autoreject_file, 
+##   pidfile
+## - default-value: /
+root_dir: .
+

@@ -1,0 +1,44 @@
+#
+##
+### Salt Master modular configuration
+##
+#
+
+
+## pillar_roots
+## - A base environment is required to house the top.sls file
+## - the environment precedence/workflow is as follows:
+## lab -> dev -> stg -> uat -> prod
+## - this supports maintaining multiple versions of the same config in the
+## same cfg-store, safely, for testing, without impacting more
+## promoted a/o stable versions used by downstream environments.
+## - For example, a UAT state will never be pulled into production, but in
+## order to maintain a UAT environment, based in production, with
+## only intended alteration, all the production states are available
+## unless overidden.
+
+pillar_roots:
+  base:
+    - /srv/salt/pillar/base
+  PROD:
+    - /srv/salt/pillar/PROD
+    - /srv/salt/pillar/base
+  UAT:
+    - /srv/salt/pillar/UAT
+    - /srv/salt/pillar/PROD
+    - /srv/salt/pillar/base
+  STG:
+    - /srv/salt/pillar/STG
+    - /srv/salt/pillar/UAT
+    - /srv/salt/pillar/PROD
+    - /srv/salt/pillar/base
+  DEV:
+    - /srv/salt/pillar/DEV
+    - /srv/salt/pillar/STG
+    - /srv/salt/pillar/UAT
+    - /srv/salt/pillar/PROD
+    - /srv/salt/pillar/base
+  LAB:
+    - /srv/salt/pillar/LAB
+    - /srv/salt/pillar/base
+

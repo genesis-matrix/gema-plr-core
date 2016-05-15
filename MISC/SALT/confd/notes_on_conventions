@@ -1,0 +1,8 @@
+note on configuration conventions used in this directory
+======
+
+ - the "conf\.(minion|master).{conf_setting}\.\.human-label.conf" file name convention for configuration files is not standard for salt.
+ - It's used because I feel it provides a higher degree of stability, recognition, and clarity when changing configuration.
+ - It might be desirable to collect these discrete conf files in the "conf.d" directory, and include them via referring symlinks from within the corresponding config set (master or minion).
+ - 
+
