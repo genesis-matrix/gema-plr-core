@@ -1,0 +1,45 @@
+install
+text
+cdrom
+skipx
+lang en_US.UTF-8
+keyboard us
+timezone UTC
+rootpw vagrant
+user --name=vagrant --password=vagrant
+auth --enableshadow --passalgo=sha512 --kickstart
+#firewall --disabled
+selinux --permissive
+bootloader --location=mbr
+zerombr
+clearpart --all --initlabel
+autopart
+firstboot --disable
+reboot
+
+%packages --instLangs=en_US.utf8 --nobase --ignoremissing --excludedocs
+@Base
+@Core
+openssh-clients
+sudo
+kernel
+#kernel-headers
+#kernel-devel
+#gcc
+#make
+#perl
+#curl
+#wget
+#nfs-utils
+#net-tools
+#bind-utils
+#vim-minimal
+#bzip2
+%end
+
+
+%post --log=/tmp/ks.log
+yum -y install kernel
+#
+sed -i "s/^.*requiretty/#Defaults requiretty/" /etc/sudoers
+%end

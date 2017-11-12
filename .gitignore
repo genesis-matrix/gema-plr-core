@@ -1,0 +1,112 @@
+#
+# .gitignore - inhibit git from tracking files matching the below patterns
+#
+#
+
+
+# for directory tracking, add empty .gitignore to example/.
+!.gitignore
+!.gitkeep
+
+
+# file browser metadata/artifacts
+.DS_Store
+.directory
+
+
+# alt/aux version control tracking artifacts
+.svn
+
+
+# alt/aux tooling artifacts
+.vagrant
+*.html
+
+
+
+# ignore secret/personal stuffs (except example files)
+**/gpgkeys/*.gpg
+etc/salt/pki
+**/packer_cache
+output-*/
+*.private
+*.gpg
+*.asc
+*.pub
+*.rsa
+id_rsa
+*_rsa.pub
+*.dsa
+id_dsa
+*_dsa.pub
+*.ed25519
+id_ed25519
+*_ed25519.pub
+.secret.d/*/*
+!*__example
+
+
+# unnecesary autosaves/backups
+*~
+*\#*
+auto-save-list/*
+~$*
+.swp
+*.swp
+
+
+# temp ao cache files
+var/*/*
+tmp/*
+var/*
+nohup.out
+gmon.out
+var/*/*
+tmp/*
+
+
+# compiled ao binary
+*.pyc
+*.elc
+*.o
+*.a
+*.jar
+*.exe
+*.obj
+*.dll
+*.class
+
+
+# temp files
+*\#*
+*~
+*.log
+
+
+# MSVS project files
+**/Debug/
+**/Release/
+**/Backup/
+**/elog/
+*.v11.suo
+*.sdf
+*.opensdf
+# intelisense db
+*.ncb
+*.idb
+*.pdb
+#*.unsuccessfulbuild
+#*.lastbuildstate
+#*.vcxproj
+#*.vcxproj.filters
+#*.tlog
+#*.log
+#*.intermediate.manifest
+#*.exp
+#*.sdf
+
+# never ignore these
+!**/Utilities/**
+!**/.gitkeep
+
+

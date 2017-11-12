@@ -1,0 +1,33 @@
+## -*- mode: yaml -*-
+##
+##
+
+
+
+## NOTES
+##  - uses alternate top_state file at top_PROVISION.sls
+##  - Packer uses Salts implicit defaults for file_roots and pillar_roots
+
+
+
+state_top: top_PROVISION.sls
+
+
+
+## Minion-Specific Grains
+grains:
+
+  onduty: True
+  machine_class: server
+  deploy_env: []
+  virtual: VMware
+  provision_states:
+    - 'state.machine._spec.minset-configs'
+  # machine_role:
+  #   - genesis-master
+  deploy_pipeline:
+    - target-vagrant
+
+
+
+## EOF

@@ -1,0 +1,49 @@
+##
+##
+##
+
+
+
+##_META:
+##  Applicability: unclear
+##  References:
+##    - https://github.com/HubbleStack/Nebula
+##    - https://docs.saltstack.com/en/2015.8/topics/jobs/schedule.html
+##    - https://docs.saltstack.com/en/2015.8/ref/states/all/salt.states.schedule.html
+##    - https://docs.saltstack.com/en/2015.8/ref/modules/all/salt.modules.schedule.html
+##    - https://github.com/saltstack/salt/issues/6201
+##    - https://docs.saltstack.com/en/latest/topics/jobs/
+##
+
+
+
+#
+schedule:
+  nebula_fifteen_min:
+    function: nebula.queries
+    seconds: 900
+    args:
+      - fifteen_min
+    returner: splunk_nebula_return
+    return_job: False
+    run_on_start: False
+  nebula_hour:
+    function: nebula.queries
+    seconds: 3600
+    args:
+      - hour
+    returner: splunk_nebula_return
+    return_job: False
+    run_on_start: False
+  nebula_day:
+    function: nebula.queries
+    seconds: 86400
+    args:
+      - day
+    returner: splunk_nebula_return
+    return_job: False
+    run_on_start: False
+
+
+
+## EOF

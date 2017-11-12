@@ -1,0 +1,18 @@
+##
+## NOTES on labels
+##
+
+
+
+{#
+ - Labels are an abstraction of a heirarchy as key value pattern.
+ - The first level is the key and everything following is the value.
+ - For example, in the reference "label.service_feature.salt-master.infratest", the key is "service_feature", and the value is "salt-master.infratest".
+ - You'll notice the "label" term is sometimes optional and is discarded from this classification when present.
+
+
+
+#}
+
+
+

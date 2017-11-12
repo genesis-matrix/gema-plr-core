@@ -1,0 +1,38 @@
+# ref: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Installation_Guide/sect-kickstart-syntax.html
+install
+text
+cdrom
+skipx
+lang en_US.UTF-8
+keyboard us
+timezone UTC
+auth --enableshadow --passalgo=sha512 --kickstart
+firewall --enabled --ssh
+selinux --enforcing
+bootloader --location=mbr
+zerombr
+clearpart --all --initlabel
+autopart --type=thinp --fstype=ext4
+firstboot --disable
+
+# <vagrant>
+rootpw vagrant
+user --name=vagrant --password=vagrant
+# </vagrant>
+
+reboot
+
+%packages --instLangs=en_US.utf8 --nobase --ignoremissing --excludedocs
+@Base
+@Core
+openssh-clients
+sudo
+kernel
+%end
+
+
+%post --log=/tmp/ks.log
+#yum -y install kernel
+#
+sed -i "s/^.*requiretty/#Defaults requiretty/" /etc/sudoers
+%end

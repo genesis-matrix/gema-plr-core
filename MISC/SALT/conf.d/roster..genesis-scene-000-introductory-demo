@@ -1,0 +1,265 @@
+##
+##
+##
+
+
+
+## NOTES
+#   - echo 'my pass-phrase' | gpg --dir=~/.vault/uris/genesis-ctl/etc/salt/gpgkeys/ -e -a -r <KEYID>
+#   - EXAMPLE: |
+#     localhost:
+#       host: 127.0.0.1
+#       port: 22
+#       user: root
+#       tty: True
+#       # using the default password
+#       passwd: example-password
+#       minion_opts:
+#         grains:
+#           machine_class: server
+#           onduty: False
+#           basebox_image: genesis-CentOSv6
+#           deploy_env: LAB
+
+
+
+#
+salt-master-d1:
+  host: salt-master-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      startup_states: highstate
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_master', 'salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+salt-syndic-d1:
+  host: salt-syndic-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_master', 'salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+cent5-test-d1:
+  host: cent5-test-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv5
+      #+NB: 'machine_roles' temporarily vacated for testing purposes
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+cent6-test-d1:
+  host: cent6-test-d1.vagrant.test
+  user: root
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv6
+      machine_roles: ['salt_minion', 'highstate_capable']
+      provision_alloc: {'ram': 1512}
+
+  
+
+#
+cent7-test-d1:
+  host: gema-test-d3.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+splnk-syslog-d1:
+  host: splnk-syslog-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+atlas-jira-d1:
+  host: splnk-syslog-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+atlas-bamboo-d1:
+  host: splnk-syslog-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+k8s-node-d1:
+  host: k8s-node-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+k8s-node-d2:
+  host: k8s-node-d2.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+k8s-node-d3:
+  host: k8s-node-d3.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7_02
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+k8s-node-d4:
+  host: k8s-node-d4.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7_02
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+dc-freeipa-d1:
+  host: dc-freeipa-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+msgq-rabbit-d1:
+  host: msgq-rabbit-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+vcs-gitlab-d1:
+  host: vcs-gitlab-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+vcs-artifactory-d1:
+  host: vcs-artifactory-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+zabx-srv-d1:
+  host: zabx-srv-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: genesis-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+## EOF
