@@ -36,9 +36,8 @@ lookup:
         secondary_lookups: &secondary_lookups
           sls_path:
             - state.machine._spec.minset-configs
-            - MISC.DEBUG.wip-artifactory
-            - MISC.DEBUG.test-pillar-params:
-                variable_injection: "thisvammunroo"
+            #- MISC.VESTIBULE.wip-artifactory
+
   # extended lookups
   <<: *secondary_lookups
 

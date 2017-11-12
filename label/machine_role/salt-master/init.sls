@@ -4,9 +4,22 @@
 
 
 
-machine_role: 
-  - salt-minion
-  - salt-master
+##_META:
+##
 
 
 
+## <JINJA>
+## </JINJA>
+
+
+
+#
+labels:
+  machine_role: 
+    - salt-minion
+    - salt-master
+
+
+
+## EOF

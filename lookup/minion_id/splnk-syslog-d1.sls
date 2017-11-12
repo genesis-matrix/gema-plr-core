@@ -19,12 +19,8 @@ lookup:
   minion_id:
     splnk-syslog-d1:
       # node data
-      dutyinfo:
-        project_key: example
-      credset:
-        default:
-          username: demo_username
-          password: demo_password
+      dutyinfo: []
+      credset: []
       # metadata
       _meta:
         secondary_labels: &secondary_labels
@@ -33,10 +29,8 @@ lookup:
               hubblestack.pulsar
         secondary_lookups: &secondary_lookups
           sls_path:
-            - state.machine._spec.minset-configs: []
-            - MISC.DEBUG.test-pillar-params:
-                # per-sls data
-                variable_injection: "thisvammunroo"
+            - state.machine._.minset-configs: []
+
   # extended lookups
   <<: *secondary_lookups
 

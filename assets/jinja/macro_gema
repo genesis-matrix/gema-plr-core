@@ -1,0 +1,53 @@
+##
+##
+##
+
+
+
+##_META:
+##  prospectus:
+##    - contains: macro, gema_lookup_sdb(sdb_handle)
+##    - contains: macro, gema_applicability(<tbd>)
+##  desc:
+##    - macros dont return objects (such as dictrionaries), as work-around we'll serialize return data to json string
+##    - the tojson filter automatically marks the expansion as safe
+##  refs:
+##    - https://stackoverflow.com/questions/21611988/return-a-dict-object-from-jinja2-macros
+##
+
+
+
+## <JINJA>
+{# -- -- -- #}
+{# -- -- -- #}
+{%- macro gema_lookup_sdb(sdb_handle) %}
+  {%- set secrets_dct = {} %}
+  {%- set cfg_dct = __opts__[sdb_handle] %}
+  {%- if cfg_dct.driver == 'sqlite3'
+      and __salt__['file.file_exists'](cfg_dct.database)
+      and cfg_dct.table in __salt__['sqlite3.tables'](cfg_dct.database)|map('first')|list
+      %}
+    {%- for key in __salt__['sqlite3.fetch'](cfg_dct.database, "select key from '" + cfg_dct.table + "';")|map('first')|list %}
+      {%- set value = __salt__['sdb.get']("sdb://" + sdb_handle + "/" + key) %}
+      {%- set _discard = secrets_dct.__setitem__(key, value) %}
+    {%- endfor %}
+  {%- endif %}
+  {#- return macro expansion #}
+  {{- secrets_dct|json|trim -}}
+{%- endmacro %}
+{# -- -- -- -#}
+{# -- -- -- -#}
+{# -- -- -- -#}
+{%- macro gema_state_applicability(tgtspec, minion_id, SEV) %}
+  {%- if salt['match.compound'](tgtspec, opts.id) %}
+  {#- inject state: test.succeed_without_changes #}
+  {%- else %}
+  {#- inject state: test.fail_without_changes #}
+  {#- if SEV (warn|error) is error add the failhard: True to stop execution #}
+  {%- endif %}
+{%- endmacro %}
+## </JINJA>
+
+
+
+## EOF

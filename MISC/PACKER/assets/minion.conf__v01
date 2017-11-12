@@ -22,9 +22,9 @@ grains:
   deploy_env: []
   virtual: VMware
   provision_states:
-    - 'state.machine._spec.minset-configs'
+    - 'state.machine._.minset-configs'
   # machine_role:
-  #   - genesis-master
+  #   - gema-master
   deploy_pipeline:
     - target-vagrant
 

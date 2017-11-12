@@ -31,10 +31,8 @@ lookup:
           machine_role:
             docker-host
         secondary_lookups: &secondary_lookups
-          sls_path:
-            - MISC.DEBUG.test-pillar-params:
-                # per-sls data
-                variable_injection: "thisvammunroo"
+          sls_path: [] 
+
   # extended lookups
   <<: *secondary_lookups
 

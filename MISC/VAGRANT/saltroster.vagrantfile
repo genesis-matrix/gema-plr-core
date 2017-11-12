@@ -27,7 +27,7 @@
 #     grains:
 #       machine_class: server
 #       onduty: True
-#       basebox_image: genesis-CentOS-6.7-x86_64
+#       basebox_image: gema-CentOS-6.7-x86_64
 #       deploy_env: LAB
 #       machine_role: ['salt_minion', 'highstate_capable', 'vagrant_provisioned']
 ###
@@ -40,7 +40,7 @@ VAGRANTFILE_API_VERSION = "2"
 
 #+TODO: refactor the following variables out of this file and into a more appropriate place
 ## User-Defined Variables
-defaults = {'basebox_image' => 'genesis-CentOSv6', 'provider_virttypes'=> ['virtualbox', 'vmware_desktop'], 'ram' => 512 }
+defaults = {'basebox_image' => 'gema-CentOSv6', 'provider_virttypes'=> ['virtualbox', 'vmware_desktop'], 'ram' => 512 }
 domain_suffix_list = ["localdomain", "vagrant.test"]
 #+REF: https://github.com/mitchellh/vagrant/issues/1867
 #+REF: https://www.vagrantup.com/docs/providers/configuration.html
@@ -132,7 +132,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             #+HINT: build vagrant box if it's absent and buildable
             info "verifying availability of box: hypervisor=#{image_virttype}, image=#{basebox_image}"
             info "   ... the VM image will be created if non-existent and buildable."
-            run "make genesis-preflightcheck-vm-present-#{image_virttype}--#{basebox_image}"
+            run "make gema-preflightcheck-vm-present-#{image_virttype}--#{basebox_image}"
           end
         end
 
@@ -147,7 +147,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             #+HINT: build vagrant box if it's absent and buildable
             info "verifying availability of box: hypervisor=#{image_virttype}, image=#{basebox_image}"
             info "   ... the VM image will be created if non-existent and buildable."
-            run "make genesis-preflightcheck-vm-present-#{image_virttype}--#{basebox_image}"
+            run "make gema-preflightcheck-vm-present-#{image_virttype}--#{basebox_image}"
           end
         end
 
@@ -209,16 +209,23 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             salt.install_master = true
 
             config.trigger.after :provision do
-              info "-- salt-master: accept keys"
-              run_remote 'sudo salt-key -Ay || true ; sleep 1'
-              info "-- salt-master: update master.d symlinks, restart master service"
-              run_remote 'sudo mkdir -p /etc/salt/master.d && cd /etc/salt/master.d && (sudo find . -type l -delete || true) && find /vagrant/etc/salt/master.d/ -iname "*.conf" -print0 |xargs -0 -n1 -r readlink -f |xargs -n1 -r ln -f -s '
+              info "-- salt-master: update master symlinks"
+              run_remote 'sudo find /etc/salt/master.d /srv/salt/{pillar,roots} -maxdepth 1 -type l -delete || true ; sudo mkdir -p /etc/salt/master.d ; cd /etc/salt/master.d && find /vagrant/etc/salt/master.d/ -iname "*.conf" -print0 |xargs -0 -n1 -r readlink -f |xargs -n1 -r ln -f -s ; for i in /srv/salt/{pillar,roots} ;do sudo mkdir -p ${i} ; cd ${i} ; for x in $(find /vagrant${i} -maxdepth 1 -type l) ;do ln -f -s $(readlink -f ${x}) $(basename ${x}) ;done ;done'
               run_remote 'sudo salt-call --local --retcode-passthrough service.restart salt-master && sleep 3'
-              info "-- salt-master: install pkg prereqs, restart master service"
-              run_remote 'sudo salt-call --retcode-passthrough state.apply state.machine.service.salt-master'
-              info "-- salt-master: refresh master pillar and state trees"
-              run_remote 'sudo salt-call --local --retcode-passthrough saltutil.refresh_pillar && sleep 3'
-              run_remote 'sudo salt-run fileserver.update && sleep 3'
+              info "-- salt-master: accept keys"
+              run_remote 'sudo salt-key -Ay || true ; sleep 6'
+              info "-- salt-master: install requisite software"
+              #run_remote 'sudo salt-call --timeout=900 --retcode-passthrough state.apply state.machine.software.salt-master'
+              run_remote 'sudo salt-call --timeout=900 --retcode-passthrough state.apply state.machine.software.python.mods-git'
+              info "-- salt-master: ready/up master service"
+              run_remote 'sudo salt-call --local --retcode-passthrough service.restart salt-master && sleep 3'
+              #run_remote 'sudo salt-call --timeout=900 --retcode-passthrough state.apply state.machine.service.salt-master'
+              info "-- salt-master: refresh master policy (pillar and state) trees, sync modules, restart salt-master"
+              #run_remote 'sudo salt-call --local --timeout=900 --retcode-passthrough saltutil.refresh_pillar && sleep 3'
+              #run_remote 'salt-run cache.clear_git_lock gitfs type=update'
+              #run_remote 'sudo salt-run --timeout=900 fileserver.update && sleep 3'
+              info "-- salt-master: sync all modules for minion and master"
+              run_remote 'sudo salt-call saltutil.sync_all && sudo salt-run saltutil.sync_all'
             end
           end
 
@@ -236,16 +243,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
           if is_minion and is_highstate_capable then
             config.trigger.after :provision do
-              info "-- salt-minion: apply state.service.salt-minion"
-              run_remote 'sudo salt-call state.apply state.machine.service.salt-minion'
-              info "-- salt-minion: apply highstate"
-              run_remote 'sudo salt-call state.highstate'
+              #info "-- salt-minion: apply state.service.salt-minion"
+              #run_remote 'sudo salt-call --timeout=900 state.apply state.machine.service.salt-minion'
+              #info "-- salt-minion: apply highstate"
+              #run_remote 'sudo salt-call state.highstate'
             end
           end
 
           #
           #salt.orchestrations = true if is_orchestrate_capable
-          #salt.run_overstate = true if is_overstate_capable
         end
 
       end

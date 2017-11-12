@@ -31,10 +31,8 @@ lookup:
           machine_role:
             docker-host
         secondary_lookups: &secondary_lookups
-          sls_path:
-            - MISC.DEBUG.wip-jira
-            - MISC.DEBUG.test-pillar-params:
-                variable_injection: "thisvammunroo"
+          sls_path: []
+            
   # extended lookups
   <<: *secondary_lookups
 

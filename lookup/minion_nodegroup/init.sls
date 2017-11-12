@@ -5,29 +5,25 @@
 
 
 ##_META:
-##  purpose:
-##    - map the ext_pillar nodegroup info into the label:minion_nodegroups tree
 ##
 
 
 
 ## <JINJA>
-{# copy the nodegroup/ext_pillar into gema labels #}
-{% set nodegroups = pillar['nodegroups'] %}
+{#- copy the nodegroup/ext_pillar into gema labels #}
+{%- set pillar_nodegroup_lst = __stack__['traverse'](pillar, 'nodegroups', []) %}
+{%- set stack_nodegroup_lst = __stack__['traverse'](stack, 'label:minion_nodegroup', []) %}
 ## </JINJA>
 
 
 
 #
-{% if nodegroups is defined %}
+{% if pillar_nodegroup_lst|length() >= 1 %}
 label:
   minion_nodegroup:
-    {% for nodegroup in nodegroups %}
-    - {{ nodegroup }}
-    {% endfor %}
-{% else %}
-label:
-  minion_nodegroup: []
+    {%- for nodegroup in pillar_nodegroup_lst %}
+    ? {{ nodegroup }}
+    {%- endfor %}
 {% endif %}
 
 

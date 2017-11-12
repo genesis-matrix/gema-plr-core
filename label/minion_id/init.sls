@@ -5,8 +5,6 @@
 
 
 ##_META:
-##  todo:
-##    - [ ] verify that opts["id"] is the correct/best way to get minion_id
 ##
 
 
@@ -18,9 +16,8 @@
 
 #
 label:
-  minion_id:
-    '{{ opts["id"] }}'
+  minion_id: {}
 
-    
+
 
 ## EOF
