@@ -14,17 +14,18 @@
 
 
 
+## Minion Configs #
+
 state_top: top_PROVISION.sls
 
-
-
-## Minion-Specific Grains
 grains:
-
   onduty: True
+  dutyinfo:
+    deployenv: []
+    machine_role: []
+    ipso_key: []
   machine_class: server
-  deploy_env: []
-  virtual: VMware
+  #virtual: VMware
   provision_states:
     - 'state.machine._.minset-configs'
     - 'state.machine.software.uptodate'
@@ -32,10 +33,20 @@ grains:
     - 'state.machine.mount.ramdisk'
     - 'state.machine.service.systemd-journald'
     - 'state.machine.service.systemd-networkd'
-  # machine_role:
-  #   - gema-master
   deploy_pipeline:
     - target-vagrant
+
+
+
+## Master Configs #
+file_roots:
+  base:
+    - /srv/salt/base.sitelocal
+    - /srv/salt/base.core
+pillar_roots:
+  base:
+    - /srv/pillar/base.sitelocal
+    - /srv/pillar/base.core
 
 
 
