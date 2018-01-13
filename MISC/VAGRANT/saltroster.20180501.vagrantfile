@@ -212,7 +212,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         elsif _resolv_sys == 'vagrant-hosts' then
           #"    ... using the 'vagrant-hosts' DNS system"
           machine.vm.provision :hosts do |hosts|
-	    hosts.sync_hosts = true
+            hosts.sync_hosts = true
             hosts.autoconfigure = true
             #puts "hosts.add_host #{netnames.key('ipv4')}, #{netnames.select{|k,v| v == 'short' or v == 'fqdn'}.keys}"
             hosts.add_host netnames.key('ipv4'), netnames.select{|k,v| v == 'short' or v == 'fqdn'}.keys
