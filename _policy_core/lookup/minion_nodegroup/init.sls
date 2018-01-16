@@ -18,13 +18,13 @@
 
 
 #
-{% if pillar_nodegroup_lst|length() >= 1 %}
+{%- if pillar_nodegroup_lst|length() >= 1 %}
 label:
   minion_nodegroup:
     {%- for nodegroup in pillar_nodegroup_lst %}
     ? {{ nodegroup }}
     {%- endfor %}
-{% endif %}
+{%- endif %}
 
 
 
