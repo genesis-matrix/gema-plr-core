@@ -19,7 +19,7 @@ salt:
   master:
     ext_pillar:
       - file_tree:
-          root_dir: /srv/salt/pillar/base/assets/static
+          root_dir: /srv/salt/pillar/base.sitelocal/assets/static
           follow_dir_links: False
           keep_newline: True
 
