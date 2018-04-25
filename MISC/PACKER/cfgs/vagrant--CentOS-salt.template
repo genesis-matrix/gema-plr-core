@@ -18,6 +18,25 @@
 	}
     ],
     "builders": [
+        {
+	    "shutdown_command": "/sbin/halt -h -p",
+	    "ssh_wait_timeout": "10000s",
+	    "ssh_port": 22,
+	    "ssh_username": "{{user `login_user`}}",
+	    "ssh_password": "{{user `login_pass`}}",
+	    "http_directory": "{{user `http_directory`}}",
+	    "boot_wait": "12s",
+	    "boot_command": [
+		"<tab>",
+		" text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/{{user `http_file`}}<enter><wait>"
+	    ],
+	    "iso_checksum_type": "{{user `iso_checksum_type`}}",
+	    "iso_checksum": "{{user `iso_checksum`}}",
+	    "iso_url": "{{user `mirror_rooturl`}}{{user `mirror_relapath`}}{{user `image_osname`}}-{{user `image_osrelease`}}-{{user `image_osarch`}}{{user `mirror_suffix`}}",
+	    "disk_size": "{{user `harddisk_size`}}",
+	    "headless": "{{user `headless`}}",
+	    "type": "qemu"
+	},
 	{
 	    "shutdown_command": "/sbin/halt -h -p",
 	    "vmx_data": {

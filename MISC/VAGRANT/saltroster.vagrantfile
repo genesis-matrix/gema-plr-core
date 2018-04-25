@@ -40,11 +40,11 @@ VAGRANTFILE_API_VERSION = "2"
 
 #+TODO: refactor the following variables out of this file and into a more appropriate place
 ## User-Defined Variables
-defaults = {'basebox_image' => 'gema-CentOSv6', 'provider_virttypes'=> ['virtualbox', 'vmware_desktop'], 'ram' => 512 }
+defaults = {'basebox_image' => 'gema-CentOSv6', 'provider_virttypes'=> ['libvirt', 'virtualbox', 'vmware_desktop'], 'ram' => 512 }
 domain_suffix_list = ["localdomain", "vagrant.test"]
 #+REF: https://github.com/mitchellh/vagrant/issues/1867
 #+REF: https://www.vagrantup.com/docs/providers/configuration.html
-provider_image_map = {["virtualbox"] => "virtualbox-iso", ["vmware_desktop", "vmware_fusion", "vmware_workstation"] => "vmware-iso"}
+provider_image_map = {["libvirt"] => "qemu", ["virtualbox"] => "virtualbox-iso", ["vmware_desktop", "vmware_fusion", "vmware_workstation"] => "vmware-iso"}
 default_provider_virttype = defaults['provider_virttypes'][0]
 
 
@@ -121,6 +121,25 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         machine.vm.hostname = hostname
 
         #+TODO: add VMware provider config
+
+
+        # provision by backing virt type, default: libvirt
+        machine.vm.provider :libvirt do |_,override|
+          _.memory = alloc_ram
+          override.trigger.before :up, :stdout => true, :vm => machine.vm.hostname do
+            #+TODO: this needs more safety and validity checks to prevent breaks in existing functionality
+            image_virttype = ""
+            provider_virttype = "libvirt"
+            #config.vm.synced_folder './', '/vagrant', type: 'rsync'
+            provider_image_map.each { |k,v| image_virttype = v if k.include?(provider_virttype) }
+            #+HINT: build vagrant box if it's absent and buildable
+            info "verifying availability of box: hypervisor=#{image_virttype}, image=#{basebox_image}"
+            info "   ... the VM image will be created if non-existent and buildable."
+            run "make gema-preflightcheck-vm-present-#{image_virttype}--#{basebox_image}"
+          end
+        end
+
+
         # provision by backing virt type, default: virtualbox
         machine.vm.provider :virtualbox do |_,override|
           _.memory = alloc_ram
@@ -211,7 +230,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             config.trigger.after :provision do
               info "-- salt-master: update master symlinks"
               run_remote 'sudo find /etc/salt/master.d /srv/salt/{pillar,roots} -maxdepth 1 -type l -delete || true ; sudo mkdir -p /etc/salt/master.d ; cd /etc/salt/master.d && find /vagrant/etc/salt/master.d/ -iname "*.conf" -print0 |xargs -0 -n1 -r readlink -f |xargs -n1 -r ln -f -s ; for i in /srv/salt/{pillar,roots} ;do sudo mkdir -p ${i} ; cd ${i} ; for x in $(find /vagrant${i} -maxdepth 1 -type l) ;do ln -f -s $(readlink -f ${x}) $(basename ${x}) ;done ;done'
-              run_remote 'sudo salt-call --local --retcode-passthrough service.restart salt-master && sleep 3'
+              run_remote 'sudo salt-call --local --retcode-passthrough service.restart salt-master && sleep 6'
               info "-- salt-master: accept keys"
               run_remote 'sudo salt-key -Ay || true ; sleep 6'
               info "-- salt-master: install requisite software"
