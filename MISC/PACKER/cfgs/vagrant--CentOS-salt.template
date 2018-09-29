@@ -89,7 +89,7 @@
 	    "iso_checksum": "{{user `iso_checksum`}}",
 	    "guest_os_type": "RedHat_64",
 	    "guest_additions_path": "/root/VBoxGuestAdditions.iso",
-	    "disk_size": 40960,
+	    "disk_size": "{{user `harddisk_size`}}",
 	    "boot_wait": "20s",
 	    "boot_command": [
 		"<tab>",
@@ -97,6 +97,27 @@
 	    ],
 	    "http_directory": "{{user `http_directory`}}",
 	    "type": "virtualbox-iso"
-	}
+	},
+	{
+	    "headless": "{{user `headless`}}",
+	    "ssh_timeout": "10000s",
+	    "ssh_port": 22,
+	    "ssh_username": "{{user `login_user`}}",
+	    "ssh_password": "{{user `login_pass`}}",
+	    "shutdown_command": "/sbin/halt -h -p",
+	    "iso_url": "{{user `mirror_rooturl`}}{{user `mirror_relapath`}}{{user `image_osname`}}-{{user `image_osrelease`}}-{{user `image_osarch`}}{{user `mirror_suffix`}}",
+	    "iso_checksum_type": "{{user `iso_checksum_type`}}",
+	    "iso_checksum": "{{user `iso_checksum`}}",
+	    "guest_os_type": "centos",
+	    "parallels_tools_flavor": "lin",
+	    "disk_size": "{{user `harddisk_size`}}",
+	    "boot_wait": "20s",
+	    "boot_command": [
+		"<tab>",
+		" text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/{{user `http_file`}}<enter><wait>"
+	    ],
+	    "http_directory": "{{user `http_directory`}}",
+	    "type": "parallels-iso"
+	}	
     ]
 }

@@ -18,7 +18,11 @@
 #         grains:
 #           machine_class: server
 #           onduty: False
-#           basebox_image: gema-CentOSv6
+#           # hint: specifiy any boxes listed at https://app.vagrantup.com/boxes/search
+#           # hint: optionally override this by setting with the "VAGRANT_BASEBOX_IMAGE" environment variable
+#           basebox_image: centos/7
+#           machine_role: ['salt_master', 'salt_minion']
+#           provision_alloc: {'ram': 1512}
 #           deploy_env: LAB
 
 
@@ -32,7 +36,7 @@ salt-master-d1:
       #startup_states: highstate
       machine_class: server
       onduty: True
-      basebox_image: gema-CentOSv7
+      #basebox_image: gema-CentOSv7
       machine_role: ['salt_master', 'salt_minion']
       provision_alloc: {'ram': 1512}
 
@@ -47,42 +51,112 @@ salt-syndic-d1:
       machine_class: server
       onduty: True
       basebox_image: gema-CentOSv7
-      machine_role: ['salt_master', 'salt_minion']
+      machine_role: ['salt_minion']
       provision_alloc: {'ram': 1512}
 
 
 
-#
-cent5-test-d1:
-  host: cent5-test-d1.vagrant.test
-  user: vagrant
-  minion_opts:
-    grains:
-      machine_class: server
-      onduty: True
-      basebox_image: gema-CentOSv5
-      #+NB: 'machine_roles' temporarily vacated for testing purposes
-      provision_alloc: {'ram': 1512}
+##  #
+##  test-cent5-d1:
+##    host: test-cent5-d1.vagrant.test
+##    user: vagrant
+##    minion_opts:
+##      grains:
+##        machine_class: server
+##        onduty: True
+##        basebox_image: centos/5
+##        #+NB: 'machine_roles' temporarily vacated for testing purposes
+##        provision_alloc: {'ram': 1512}
 
 
 
 #
-cent6-test-d1:
-  host: cent6-test-d1.vagrant.test
+test-cent6-d1:
+  host: test-cent6-d1.vagrant.test
   user: root
   minion_opts:
     grains:
       machine_class: server
       onduty: True
-      basebox_image: gema-CentOSv6
+      basebox_image: centos/6
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
 
   
 
 #
-cent7-test-d1:
-  host: gema-test-d3.vagrant.test
+test-cent7-d1:
+  host: test-cent7-d1.vagrant.test
+  user: root
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: centos/7
+      machine_roles: ['salt_minion', 'highstate_capable']
+      provision_alloc: {'ram': 1512}
+
+  
+
+#
+test-u1804-d1:
+  host: test-u1804-d1.vagrant.test
+  user: root
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: ubuntu/bionic64
+      machine_roles: ['salt_minion', 'highstate_capable']
+      provision_alloc: {'ram': 1512}
+
+  
+
+#
+test-u1810-d1:
+  host: test-u1810-d1.vagrant.test
+  user: root
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: ubuntu/cosmic64
+      machine_roles: ['salt_minion', 'highstate_capable']
+      provision_alloc: {'ram': 1512}
+
+  
+
+#
+salt-qc-d1:
+  host: salt-qc-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      #basebox_image: gema-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1024}
+
+
+
+#
+salt-qc-d2:
+  host: salt-qc-d2.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      onduty: True
+      basebox_image: centos/7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1024}
+
+
+
+#
+salt-qc-d3:
+  host: salt-qc-d3.vagrant.test
   user: vagrant
   minion_opts:
     grains:
@@ -90,22 +164,8 @@ cent7-test-d1:
       onduty: True
       basebox_image: gema-CentOSv7
       machine_role: ['salt_minion']
-      provision_alloc: {'ram': 1512}
+      provision_alloc: {'ram': 1024}
 
-
-
-#
-gema-node-d1:
-  host: gema-node-d1.vagrant.test
-  user: vagrant
-  minion_opts:
-    grains:
-      machine_class: server
-      onduty: True
-      basebox_image: gema-CentOSv7dot3_v00
-      machine_role: ['salt_minion']
-      provision_alloc: {'ram': 1512}
-  
 
 
 #
@@ -124,7 +184,7 @@ splnk-syslog-d1:
 
 #
 atlas-jira-d1:
-  host: splnk-syslog-d1.vagrant.test
+  host: atlas-jira-d1.vagrant.test
   user: vagrant
   minion_opts:
     grains:
@@ -138,7 +198,7 @@ atlas-jira-d1:
 
 #
 atlas-bamboo-d1:
-  host: splnk-syslog-d1.vagrant.test
+  host: atlas-bamboo-d1.vagrant.test
   user: vagrant
   minion_opts:
     grains:

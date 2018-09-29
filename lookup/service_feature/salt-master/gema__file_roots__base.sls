@@ -19,7 +19,7 @@ salt:
   master:
     file_roots:
       base:
-        - /srv/salt/roots/base
+        - /srv/salt/fileserver/base
 
 
 

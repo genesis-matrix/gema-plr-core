@@ -19,8 +19,8 @@ salt:
   master:
     file_roots:
       VESTIBULE:
-        - /srv/salt/roots/vestibule.sitelocal
-        - /srv/salt/roots/vestibule.contrib
+        - /srv/salt/fileserver/vestibule.sitelocal
+        - /srv/salt/fileserver/vestibule.contrib
 
 
 
