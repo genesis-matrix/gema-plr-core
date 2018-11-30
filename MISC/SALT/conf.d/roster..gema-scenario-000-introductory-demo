@@ -281,8 +281,8 @@ dc-freeipa-d1:
 
 
 #
-msgq-rabbit-d1:
-  host: msgq-rabbit-d1.vagrant.test
+msgq-amq-d1:
+  host: msgq-amq-d1.vagrant.test
   user: vagrant
   minion_opts:
     grains:
