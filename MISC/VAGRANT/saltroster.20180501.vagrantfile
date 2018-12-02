@@ -139,6 +139,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         machine.vm.box = basebox_image
         machine.vm.hostname = hostname
         #machine.vm.synced_folder '.', '/vagrant', disabled: true
+        machine.vm.synced_folder '.', '/vagrant', type: "sshfs" if Vagrant.has_plugin? 'vagrant-sshfs'
 
         # DNS Management
         if _resolv_sys then
@@ -167,8 +168,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             #           host_addr.upcase.split(".").first.split("-")[1, host_addr.split(".").first.split("-").length - 2].first.bytes.reduce(:+) % 205 + 50,
             #           host_addr.upcase.bytes.reduce(:+) % 255 + 1
             #          ].join(".")] = 'ipv4'
-
-            #puts "... assigning auto-generated private static IP ['#{hostname}']: #{netnames.key('ipv4')}"
+            #puts "... using auto-generated private static IP ['#{hostname}']: #{netnames.key('ipv4')}"
           end
           #+HINT: expand short names to fqdn's
           netnames.select{|k, v| v == 'short'}.each do |netalias, nettype|
@@ -183,13 +183,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         # provision by backing virt type, default: libvirt
         machine.vm.provider :libvirt do |_,override|
           _.memory = alloc_ram
-          override.trigger.before :up do |trigger|
-            #+TODO: this needs more safety and validity checks to prevent breaks in existing functionality
-            image_virttype = ""
-            provider_virttype = "libvirt"
-            provider_image_map.each { |k,v| image_virttype = v if k.include?(provider_virttype) }
-            #+HINT: build vagrant box if it's absent and buildable
-            if basebox_image.match('^gema-')
+          if basebox_image.match('^gema-') then
+            override.trigger.before :up do |trigger|
+              #+TODO: this needs more safety and validity checks to prevent breaks in existing functionality
+              image_virttype = ""
+              provider_virttype = "libvirt"
+              provider_image_map.each { |k,v| image_virttype = v if k.include?(provider_virttype) }
               trigger.info = "verifying availability of box: hypervisor=#{image_virttype}, image=#{basebox_image}"
               trigger.info = "   ... the VM image will be created if non-existent and buildable."
               trigger.run = { inline: "  make gema-preflightcheck-vm-present-#{image_virttype}--#{basebox_image}" }
@@ -201,13 +200,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         # provision by backing virt type, default: virtualbox
         machine.vm.provider :virtualbox do |_,override|
           _.memory = alloc_ram
-          override.trigger.before :up do |trigger|
-            #+TODO: this needs more safety and validity checks to prevent breaks in existing functionality
-            image_virttype = ""
-            provider_virttype = "virtualbox"
-            provider_image_map.each { |k,v| image_virttype = v if k.include?(provider_virttype) }
-            #+HINT: build vagrant box if it's absent and buildable
-            if basebox_image.match('^gema-')
+          if basebox_image.match('^gema-') then
+            override.trigger.before :up do |trigger|
+              #+TODO: this needs more safety and validity checks to prevent breaks in existing functionality
+              image_virttype = ""
+              provider_virttype = "virtualbox"
+              provider_image_map.each { |k,v| image_virttype = v if k.include?(provider_virttype) }
+              #+HINT: build vagrant box if it's absent and buildable
               trigger.info = "verifying availability of box: hypervisor=#{image_virttype}, image=#{basebox_image}"
               trigger.info = "   ... the VM image will be created if non-existent and buildable."
               trigger.run = { inline: "  make gema-preflightcheck-vm-present-#{image_virttype}--#{basebox_image}" }
@@ -220,15 +219,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         machine.vm.provider :vmware_desktop do |_,override|
           _.memory = alloc_ram
           override.vmx["tools.upgrade.policy"] = "manual"
-          #machine.vm.synced_folder ".", "/vagrant", type: "nfs"
-          override.trigger.before :up do |trigger|
-            #+TODO: this needs more safety and validity checks to prevent breaks in existing functionality
-            image_virttype = ""
-            provider_virttype = "vmware_desktop"
-            provider_image_map.each { |k,v| image_virttype = v if k.include?(provider_virttype) }
-            #+HINT: build vagrant box if it's absent and buildable
-            if basebox_image.match('^gema-')
-              trigger.info = "verifying availability of box: hypervisor=#{image_virttype}, image=#{basebox_image}"
+          if basebox_image.match('^gema-') then
+            machine.trigger.before :up do |trigger|
+              #+TODO: this needs more safety and validity checks to prevent breaks in existing functionality
+              image_virttype = ""
+              provider_virttype = "vmware_desktop"
+              provider_image_map.each { |k,v| image_virttype = v if k.include?(provider_virttype) }
+              #+HINT: build vagrant box if it's absent and buildable
+              trigger.name = "verifying availability of box: hypervisor=#{image_virttype}, image=#{basebox_image}"
               trigger.info = "   ... the VM image will be created if non-existent and buildable."
               trigger.run = { inline: "  make gema-preflightcheck-vm-present-#{image_virttype}--#{basebox_image}" }
             end
