@@ -1,0 +1,177 @@
+##
+##
+##
+
+
+
+##_META:
+##
+
+
+
+## <JINJA>
+{%- set label_namespace = __stack__['traverse'](pillar, 'namespace:gema_label', 'label') %}
+{%- set lookup_namespace = __stack__['traverse'](pillar, 'namespace:gema_lookup', 'lookup') %}
+{#- set location #}
+{%- set label_visitation_namespace_lst = [label_namespace, "__visitation_lst"] %}
+{%- set label_visitation_namespace = __stack__['traverse'](pillar, 'namespace:gema_label_visitation', label_visitation_namespace_lst|join(':')) %}
+{%- if __stack__['traverse'](stack, label_visitation_namespace, none) is none %}
+{%- set _discard = stack.update({label_visitation_namespace_lst[0]: {label_visitation_namespace_lst[1]: []}}) %}
+{%- endif %}
+{%- set visitation_lst = __stack__['traverse'](stack, label_visitation_namespace, []) %}
+{#- #}
+{%- set pillar_dct = __stack__['traverse'](pillar, label_namespace, {}) %}
+{%- set stack_dct = __stack__['traverse'](stack, label_namespace, {}) %}
+{%- set merge_dct = {} %}
+{#- hint: the pillar provides an OrderedDict which we'll convert to a dict for processing #}
+{%- for k, v in __stack__['traverse'](pillar, label_namespace, {}).items() %}
+{%- set _discard = merge_dct.__setitem__(k, v) %}
+{%- endfor %}
+{#- hint: merge stack_dct into pillar_dct #}
+{%- set _discard = merge_dct.update(stack_dct) %}
+{#- hint: remove visitation list from merge_dct #}
+{#- todo: label_visitation_namespace is somewhat hard-coded (aka inelasticly referenced) here #}
+{%- set _discard = merge_dct.pop(label_visitation_namespace.split(':')[-1], []) %}
+{#  hint: set traversal_dct from merge_dct #}
+{%- set traversal_dct = merge_dct %}
+{%- set msg_lookup_declined_as_nonidemp = "#+INFO: skipping lookup, previously evaluated " %}
+{#- hint: the traversal cursor #}
+{%- set uri_cursor = "" %}
+{#- TODO: filter out 'OrderedDict()' values #}
+## </JINJA>
+
+
+
+#
+{%- if traversal_dct is mapping %}
+  #
+  ##
+  ###
+  ####
+  ##### label_namespace is dtype(mapping) with value({{ traversal_dct }})
+  ####
+  ###
+  ##
+  #
+  {%- for question, question_answer in traversal_dct.items() if question is defined %}
+    #
+    ##
+    ###
+    #### question is dtype(mapping) with value({{ question }})
+    ###
+    ##
+    #
+    {% set uri_cursor = [label_namespace, question]|join(':') %}
+    {% if uri_cursor in visitation_lst %}{{- msg_lookup_declined_as_nonidemp ~ uri_cursor }}{% else %}{%- set _discard = visitation_lst.append(uri_cursor) %}
+{##}{{ lookup_namespace }}/{{ question }}.sls
+{##}{{ lookup_namespace }}/{{ question }}/init.sls
+    {% endif %}
+    {%- if question_answer is defined %}
+      {%- if question_answer is string %}
+      #
+      ##
+      ### question_answer is dtype(string) with value({{ question_answer }})
+      ##
+      #
+        {% set uri_cursor = [label_namespace, question, question_answer]|join(':') %}
+        {% if uri_cursor in visitation_lst %}{{- msg_lookup_declined_as_nonidemp ~ uri_cursor }}{% else %}{%- set _discard = visitation_lst.append(uri_cursor) %}
+{#   -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}.sls
+{#   -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/init.sls
+        {% endif %}
+      {%- elif question_answer is mapping %}
+        #
+        ##
+        ### question_answer is dtype(mapping) with value({{ question_answer }})
+        ##
+        #
+        {%- for question_answer, question_answer_detail in question_answer.items() if question_answer is defined %}
+        {% set uri_cursor = [label_namespace, question, question_answer]|join(':') %}
+        {% if uri_cursor in visitation_lst %}{{- msg_lookup_declined_as_nonidemp ~ uri_cursor }}{% else %}{%- set _discard = visitation_lst.append(uri_cursor) %}
+{#     -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}.sls
+{#     -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/init.sls
+        {% endif %}
+          {%- if question_answer_detail is defined %}
+            {%- if question_answer_detail is string %}
+              #
+              ## question_answer_detail is dtype(string) with value({{ question_answer_detail }})
+              #
+              {% set uri_cursor = [label_namespace, question, question_answer, question_answer_detail]|join(':') %}
+              {% if uri_cursor in visitation_lst %}{{- msg_lookup_declined_as_nonidemp ~ uri_cursor }}{% else %}{%- set _discard = visitation_lst.append(uri_cursor) %}
+{#         -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/{{ question_answer_detail }}.sls
+{#         -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/{{ question_answer_detail }}/init.sls
+              {% endif %}
+            {%- elif question_answer_detail is mapping %}
+              #
+              ## question_answer_detail is dtype(dict) with value({{ question_answer_detail_iter }})
+              #
+              {%- for question_answer_detail_iter, discard_var in question_answer_detail.items() if question_answer_detail_iter is defined %}
+                {% set uri_cursor = [label_namespace, question, question_answer, question_answer_detail_iter]|join(':') %}
+                {% if uri_cursor in visitation_lst %}{{- msg_lookup_declined_as_nonidemp ~ uri_cursor }}{% else %}{%- set _discard = visitation_lst.append(uri_cursor) %}
+{#           -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/{{ question_answer_detail_iter }}.sls
+{#           -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/{{ question_answer_detail_iter }}/init.sls
+                {% endif %}
+              {%- endfor %}
+            {%- elif question_answer_detail is sequence and question_answer_detail is not string %}
+              #
+              ## question_answer_detail is dtype(list) with value({{ question_answer_detail_iter }})
+              #
+              {% for question_answer_detail_iter in question_answer_detail if question_answer_detail_iter is defined %}
+                {% set uri_cursor = [label_namespace, question, question_answer, question_answer_detail_iter]|join(':') %}
+                {% if uri_cursor in visitation_lst %}{{- msg_lookup_declined_as_nonidemp ~ uri_cursor }}{% else %}{%- set _discard = visitation_lst.append(uri_cursor) %}
+{#           -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/{{ question_answer_detail_iter }}.sls
+{#           -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/{{ question_answer_detail_iter }}/init.sls
+                {% endif %}
+              {%- endfor %}
+            {%- endif %}
+          {%- endif %}
+        {%- endfor %}
+      {%- elif question_answer is sequence and question is not string %}
+      #
+      ##
+      ### question_answer is dtype(list) with value({{ question_answer }})
+      ##
+      #
+        {%- for question_answer_detail in question_answer if question_answer_detail is defined %}
+          {%- if question_answer_detail is defined %}
+            {%- if question_answer_detail is string %}
+            #
+            ## question_answer_detail is dtype(string) with value({{ question_answer_detail }})
+            #
+              {% set uri_cursor = [label_namespace, question, question_answer, question_answer_detail]|join(':') %}
+              {% if uri_cursor in visitation_lst %}{{- msg_lookup_declined_as_nonidemp ~ uri_cursor }}{% else %}{%- set _discard = visitation_lst.append(uri_cursor) %}
+{#         -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/{{ question_answer_detail }}.sls
+{#         -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/{{ question_answer_detail }}/init.sls
+              {% endif %}
+            {%- elif question_answer_detail is mapping %}
+            #
+            ## question_answer_detail is dtype(dict) with value({{ question_answer_detail_iter }})
+            #
+              {%- for question_answer_detail_iter, discard_var in question_answer_detail.items() if question_answer_detail_iter is defined %}
+                {% set uri_cursor = [label_namespace, question, question_answer, question_answer_detail_iter]|join(':') %}
+                {% if uri_cursor in visitation_lst %}{{- msg_lookup_declined_as_nonidemp ~ uri_cursor }}{% else %}{%- set _discard = visitation_lst.append(uri_cursor) %}
+{#           -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/{{ question_answer_detail_iter }}.sls
+{#           -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/{{ question_answer_detail_iter }}/init.sls
+                {% endif %}
+              {%- endfor %}
+            {%- elif question_answer_detail is sequence and question_answer_detail is not string %}
+            #
+            ## question_answer_detail is dtype(list) with value({{ question_answer_detail_iter }})
+            #
+              {%- for question_answer_detail_iter in question_answer_detail if question_answer_detail_iter is defined %}
+                {% set uri_cursor = [label_namespace, question, question_answer, question_answer_detail_iter]|join(':') %}
+                {% if uri_cursor in visitation_lst %}{{- msg_lookup_declined_as_nonidemp ~ uri_cursor }}{% else %}{%- set _discard = visitation_lst.append(uri_cursor) %}
+{#           -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/{{ question_answer_detail_iter }}.sls
+{#           -#}{{ lookup_namespace }}/{{ question }}/{{ question_answer }}/{{ question_answer_detail_iter }}/init.sls
+                {% endif %}
+              {%- endfor %}
+            {%- endif %}
+          {%- endif %}
+        {%- endfor %}
+      {%- endif %}
+    {%- endif %}
+  {%- endfor %}
+{%- endif %}
+
+
+
+## EOF

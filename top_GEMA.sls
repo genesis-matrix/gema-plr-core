@@ -24,8 +24,8 @@ base:
   ## match all nodes
   '*':
     # GeMa Label Entrypoints
-    - label.minion_nodegroup
-    - label.minion_id
+    - _policy_core.label.minion_nodegroup
+    - _policy_core.label.minion_id
 
 
 

@@ -38,6 +38,11 @@ lookup:
             ? diskusage
           machine_role:
             ? salt-master
+          service_feature:
+            fluentbit:
+              ? gema_core__prototyping__v20181207
+            fluentd:
+              ? gema_core__prototyping__v20181207
           service_preset:
             salt-master:
               ? gema__v01
