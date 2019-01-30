@@ -286,6 +286,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           machine.trigger.after :provision do |trigger|
             trigger.name = "(salt-master) install requisite software"
             trigger.run_remote = { inline: <<-EOF
+                                   if ! systemctl is-active salt-master ;then
+                                       echo "WRN: salt-master failed to start-up normally. As a fall-back, requisites will be loaded as local-mode templates."
+                                       salt-call --local --retcode-passthrough state.template tem=/srv/salt/fileserver/base.core/state/machine/software/python/mods-git/init.sls
+                                       salt-call --local --retcode-passthrough state.template tem=/srv/salt/fileserver/base.core/state/machine/software/salt-master/init.sls
+                                       salt-call --local --retcode-passthrough service.restart salt-master && sleep 6
+                                   fi
+
                                    salt-call --timeout=900 --retcode-passthrough state.apply state.machine.software.salt-master
                                    salt-call --timeout=900 --retcode-passthrough state.apply state.machine.software.python.mods-git
                                    #,HINT: net-tools is only included to help with the vagrant-hosts integration
