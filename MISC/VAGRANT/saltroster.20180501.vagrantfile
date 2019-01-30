@@ -78,6 +78,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #+HINT: Determine the DNS / Name Resolution Plugin to use
   _resolv_sys = ENV["VAGRANT_RESOLV_SYS"] ? ENV["VAGRANT_RESOLV_SYS"] : nil
   if false then
+  elsif _resolv_sys == "vagrant-hostmanager" or Vagrant.has_plugin? 'vagrant-hostmanager' then
+    # https://github.com/devopsgroup-io/vagrant-hostmanager
+    #,NOTE, recent versions (as of 1.8.9) work w/ dynamic IPs, where previously requiring static IPs
+    _resolv_sys = 'vagrant-hostmanager'
+    config.hostmanager.enabled = true
+    #config.hostmanager.manage_host = true
+    config.hostmanager.manage_guest = true
+    config.hostmanager.ignore_private_ip = false
+    config.hostmanager.include_offline = true
   elsif  _resolv_sys == 'landrush' or Vagrant.has_plugin? 'landrush' then
     # https://github.com/vagrant-landrush/landrush
     # Plugin: for DNS, landrush https://github.com/phinze/landrush
@@ -93,18 +102,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.landrush.enabled = true
     config.landrush.guest_redirect_dns = true # serve/redir landrush DNS to guests
     config.landrush.host_redirect_dns = true # make guest DNS names available from host
-  elsif _resolv_sys == "vagrant-hostmanager" or Vagrant.has_plugin? 'vagrant-hostmanager' then
-    # https://github.com/devopsgroup-io/vagrant-hostmanager
-    _resolv_sys = 'vagrant-hostmanager'
-    config.hostmanager.enabled = true
-    #config.hostmanager.manage_host = true
-    config.hostmanager.manage_guest = true
-    config.hostmanager.ignore_private_ip = false
-    config.hostmanager.include_offline = true
   elsif _resolv_sys == 'vagrant-hosts' or Vagrant.has_plugin? 'vagrant-hosts' then
     # https://github.com/oscar-stack/vagrant-hosts
     _resolv_sys = 'vagrant-hosts'
-  elsif _resolv_sys == 'vagrant-dns' or Vagrant.has_plugin? 'vagrant-dns' then
+  elsif _resolv_sys == 'vagrant-dns' or Vagrant.hasp_lugin? 'vagrant-dns' then
     # https://github.com/BerlinVagrant/vagrant-dns
     #+WARN: vagrant-dns only supports OSX hosts
   end
@@ -155,29 +156,35 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           elsif host_addr.is_a?(String) then
             # Q: suspected of being a FQDN?
             netnames[host_addr] = host_addr.include?(".") ? 'fqdn' : 'short'
-            ### Lacking a pre-assigned IP, attempt to deterministically generate one ###
-            # setup address in 192.168.x.x range (least likely to collide externally, most likely to collide internally)
-            netnames[["192", "168",
-                      (host_addr.upcase.split(".").first.split("-").first + host_addr.upcase.split(".").first.split("-").last[0]).bytes.reduce(:+) % 256,
-                      host_addr.upcase.bytes.reduce(:+) % 254 + 2
-                     ].join(".")] = 'ipv4'
-            # setup address in 10.x.x.x range (least likely to collide internally, most likely to collide externally)
-            # netnames[["10",
-            #           (host_addr.upcase.split(".").first.split("-").first + host_addr.upcase.split(".").first.split("-").last[0]).bytes.reduce(:+) % 155 + 100,
-            #           host_addr.upcase.split(".").first.split("-")[1, host_addr.split(".").first.split("-").length - 2].first.bytes.reduce(:+) % 205 + 50,
-            #           host_addr.upcase.bytes.reduce(:+) % 255 + 1
-            #          ].join(".")] = 'ipv4'
-            #puts "... using auto-generated private static IP ['#{hostname}']: #{netnames.key('ipv4')}"
-          end
-          #+HINT: expand short names to fqdn's
-          netnames.select{|k, v| v == 'short'}.each do |netalias, nettype|
-            domain_suffix_list.each { |sfx| netnames[netalias + '.' + sfx] = 'fqdn' if ['short'].include?(nettype) }
+            unless _resolv_sys == "vagrant-hostmanager" then
+              ### Lacking a pre-assigned IP, attempt to deterministically generate one ###
+              # setup address in 192.168.x.x range (least likely to collide externally, most likely to collide internally)
+              if not netnames.key("ipv4") then
+                netnames[["192", "168",
+                          (host_addr.upcase.split(".").first.split("-").first + host_addr.upcase.split(".").first.split("-").last[0]).bytes.reduce(:+) % 256,
+                          host_addr.upcase.bytes.reduce(:+) % 254 + 2
+                         ].join(".")] = 'ipv4'
+              end
+              # # setup address in 10.x.x.x range (least likely to collide internally, most likely to collide externally)
+              if not netnames.key("ipv4") then
+                netnames[["10",
+                          (host_addr.upcase.split(".").first.split("-").first + host_addr.upcase.split(".").first.split("-").last[0]).bytes.reduce(:+) % 155 + 100,
+                          host_addr.upcase.split(".").first.split("-")[1, host_addr.split(".").first.split("-").length - 2].first.bytes.reduce(:+) % 205 + 50,
+                          host_addr.upcase.bytes.reduce(:+) % 255 + 1
+                         ].join(".")] = 'ipv4'
+              end
+              puts "... using auto-generated private static IP ['#{hostname}']: #{netnames.key('ipv4')}" if ENV["VAGRANT_DEBUG"]
+            end
+            #+HINT: expand short names to fqdn's
+            netnames.select{|k, v| v == 'short'}.each do |netalias, nettype|
+              domain_suffix_list.each { |sfx| netnames[netalias + '.' + sfx] = 'fqdn' if ['short'].include?(nettype) }
+            end
           end
         end
 
 
         #machine.vm.network "private_network", type: "dhcp"
-        machine.vm.network "private_network", ip: netnames.key("ipv4"), :adapter=>2
+        machine.vm.network "private_network", ip: netnames.key("ipv4"), :adapter=>2 if netnames.key("ipv4")
 
 
         #,ref: https://stackoverflow.com/a/1347626
@@ -257,14 +264,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
                                         && find /vagrant/etc/salt/minion.d/ -iname "*.conf" -print0 |xargs -0 -n1 -r readlink -f |xargs -n1 -r ln -f -s
                                         echo "(salt-minion) clear minion_master key"
                                         rm -f /etc/salt/pki/minion/minion_master.pub
-                                        salt-call --local --retcode-passthrough service.restart salt-minion || true ; sleep 3
+                                        salt-call --local --retcode-passthrough service.restart salt-minion --out=txt --out-indent=2 || true ; sleep 3
                                  EOF
         end
 
         if is_master then
           machine.trigger.after :provision do |trigger|
             trigger.name = "(salt-master) pause, accept pending keys"
-            trigger.run_remote = { inline: 'sleep 15 ; salt-key -Ay || true ; sleep 3' }
+            trigger.run_remote = { inline: 'sleep 15 ; salt-key -Ay --out-indent=2 || true ; sleep 3' }
           end
           machine.trigger.after :provision do |trigger|
             trigger.name = "(salt-master) update master symlinks"
@@ -279,41 +286,40 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
                                            ln -f -s $(readlink -f ${x}) $(basename ${x})
                                        done
                                    done
-                                   salt-call --local --retcode-passthrough service.restart salt-master && sleep 6
+                                   salt-call --local --retcode-passthrough service.restart salt-master --out=txt --out-indent=2 && sleep 6
                                    EOF
                                  }
           end
           machine.trigger.after :provision do |trigger|
             trigger.name = "(salt-master) install requisite software"
             trigger.run_remote = { inline: <<-EOF
-                                   if ! systemctl is-active salt-master ;then
-                                       echo "WRN: salt-master failed to start-up normally. As a fall-back, requisites will be loaded as local-mode templates."
-                                       salt-call --local --retcode-passthrough state.template tem=/srv/salt/fileserver/base.core/state/machine/software/python/mods-git/init.sls
-                                       salt-call --local --retcode-passthrough state.template tem=/srv/salt/fileserver/base.core/state/machine/software/salt-master/init.sls
-                                       salt-call --local --retcode-passthrough service.restart salt-master && sleep 6
-                                   fi
-
-                                   salt-call --timeout=900 --retcode-passthrough state.apply state.machine.software.salt-master
-                                   salt-call --timeout=900 --retcode-passthrough state.apply state.machine.software.python.mods-git
+                                   # if ! systemctl is-active salt-master ;then
+                                   #     echo "WRN: salt-master failed to start-up normally. As a fall-back, requisites will be loaded as local-mode templates."
+                                   #     salt-call --local --retcode-passthrough state.template tem=/srv/salt/fileserver/base.core/state/machine/software/python/mods-git/init.sls
+                                   #     salt-call --local --retcode-passthrough state.template tem=/srv/salt/fileserver/base.core/state/machine/software/salt-master/init.sls
+                                   #     salt-call --local --retcode-passthrough service.restart salt-master && sleep 6
+                                   # fi
+                                   salt-call --timeout=900 --retcode-passthrough state.apply state.machine.software.salt-master --out-indent=2
+                                   salt-call --timeout=900 --retcode-passthrough state.apply state.machine.software.python.mods-git --out-indent=2
                                    #,HINT: net-tools is only included to help with the vagrant-hosts integration
-                                   #salt-call --local state.single pkg.installed net-tools
+                                   #salt-call --local state.single pkg.installed net-tools --out-indent=2
                                    EOF
                                  }
           end
           machine.trigger.after :provision do |trigger|
             trigger.name = "(salt-master) ready/up master service"
             trigger.run_remote = { inline: <<-EOF
-                                   salt-call --local --retcode-passthrough service.restart salt-master && sleep 3
-                                   salt-call --timeout=900 --retcode-passthrough state.apply state.machine.service.salt-master || true
+                                   salt-call --local --retcode-passthrough service.restart salt-master --out=txt --out-indent=2 && sleep 3
+                                   salt-call --timeout=900 --retcode-passthrough state.apply state.machine.service.salt-master --out-indent=2 || true
                                    EOF
                                  }
           end
           machine.trigger.after :provision do |trigger|
             trigger.name = "(salt-master) refresh master policy (pillar and state) trees, sync modules, restart salt-master"
             trigger.run_remote = { inline: <<-EOF
-                                   salt-call --local --timeout=900 --retcode-passthrough saltutil.refresh_pillar && sleep 3
+                                   salt-call --local --timeout=900 --retcode-passthrough saltutil.refresh_pillar --out=txt --out-indent=2 && sleep 3
                                    salt-run cache.clear_git_lock gitfs type=update
-                                   salt-run --timeout=900 fileserver.update && sleep 3
+                                   salt-run --timeout=900 fileserver.update --out=txt --out-indent=2 && sleep 3
                                    EOF
                                  }
           end
@@ -330,13 +336,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           if is_highstate_capable then
             machine.trigger.after :provision do |trigger|
               trigger.name = "(salt-minion) apply state.service.salt-minion, apply highstate"
-              trigger.run_remote = { inline: '  sudo salt-call --timeout=900 state.apply state.machine.service.salt-minion && sudo salt-call state.highstate' }
+              trigger.run_remote = { inline: '  sudo salt-call --timeout=900 state.apply state.machine.service.salt-minion --out-indent=2 && sudo salt-call state.highstate --out-indent=2' }
             end
           elsif
             machine.trigger.after :provision do |trigger|
-              trigger.name = "(salt-minion) apply state.service.salt-minion"
+              trigger.name = "(salt-minion) finalize minion"
               trigger.info = "NB, if the machine is not highstate_capable there's no assumption that it's joined to a master during this provisioning phase"
-              trigger.run_remote = { inline: 'salt-call state.apply state.machine.service.salt-minion' }
+              trigger.run_remote = { inline: 'salt-call state.apply state.machine.service.salt-minion --out-indent=2 &' }
             end
           end
         end
