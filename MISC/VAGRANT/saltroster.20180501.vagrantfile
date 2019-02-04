@@ -47,7 +47,7 @@ defaults = {'basebox_image' => 'centos/7', 'ram' => 512 }
 domain_suffix_list = ["localdomain", "vagrant.test", "test"]
 #+REF: https://github.com/mitchellh/vagrant/issues/1867
 #+REF: https://www.vagrantup.com/docs/providers/configuration.html
-provider_image_map = {["libvirt"] => "qemu", ["vmware_desktop", "vmware_fusion", "vmware_workstation"] => "vmware-iso", ["virtualbox"] => "virtualbox-iso", ["parallels"] => "parallels-iso"}
+provider_image_map = {["libvirt"] => "qemu", ["vmware_desktop", "vmware_fusion", "vmware_workstation"] => "vmware-iso", ["parallels"] => "parallels-iso", ["virtualbox"] => "virtualbox-iso"}
 provider_lst_fn = lambda {|x| ret = [] ; for i in x.keys do ret.push(i.first) ; end ; return ret}
 provider_lst = provider_lst_fn.call(provider_image_map)
 
@@ -156,29 +156,23 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           elsif host_addr.is_a?(String) then
             # Q: suspected of being a FQDN?
             netnames[host_addr] = host_addr.include?(".") ? 'fqdn' : 'short'
-            unless _resolv_sys == "vagrant-hostmanager" then
-              ### Lacking a pre-assigned IP, attempt to deterministically generate one ###
-              # setup address in 192.168.x.x range (least likely to collide externally, most likely to collide internally)
-              if not netnames.key("ipv4") then
-                netnames[["192", "168",
-                          (host_addr.upcase.split(".").first.split("-").first + host_addr.upcase.split(".").first.split("-").last[0]).bytes.reduce(:+) % 256,
-                          host_addr.upcase.bytes.reduce(:+) % 254 + 2
-                         ].join(".")] = 'ipv4'
-              end
-              # # setup address in 10.x.x.x range (least likely to collide internally, most likely to collide externally)
-              if not netnames.key("ipv4") then
-                netnames[["10",
-                          (host_addr.upcase.split(".").first.split("-").first + host_addr.upcase.split(".").first.split("-").last[0]).bytes.reduce(:+) % 155 + 100,
-                          host_addr.upcase.split(".").first.split("-")[1, host_addr.split(".").first.split("-").length - 2].first.bytes.reduce(:+) % 205 + 50,
-                          host_addr.upcase.bytes.reduce(:+) % 255 + 1
-                         ].join(".")] = 'ipv4'
-              end
-              puts "... using auto-generated private static IP ['#{hostname}']: #{netnames.key('ipv4')}" if ENV["VAGRANT_DEBUG"]
-            end
-            #+HINT: expand short names to fqdn's
-            netnames.select{|k, v| v == 'short'}.each do |netalias, nettype|
-              domain_suffix_list.each { |sfx| netnames[netalias + '.' + sfx] = 'fqdn' if ['short'].include?(nettype) }
-            end
+            ### Lacking a pre-assigned IP, attempt to deterministically generate one ###
+            # setup address in 192.168.x.x range (least likely to collide externally, most likely to collide internally)
+            # netnames[["192", "168",
+            #           (host_addr.upcase.split(".").first.split("-").first + host_addr.upcase.split(".").first.split("-").last[0]).bytes.reduce(:+) % 256,
+            #           host_addr.upcase.bytes.reduce(:+) % 254 + 2
+            #          ].join(".")] = 'ipv4'
+            # setup address in 10.x.x.x range (least likely to collide internally, most likely to collide externally)
+            # netnames[["10",
+            #           (host_addr.upcase.split(".").first.split("-").first + host_addr.upcase.split(".").first.split("-").last[0]).bytes.reduce(:+) % 155 + 100,
+            #           host_addr.upcase.split(".").first.split("-")[1, host_addr.split(".").first.split("-").length - 2].first.bytes.reduce(:+) % 205 + 50,
+            #           host_addr.upcase.bytes.reduce(:+) % 255 + 1
+            #          ].join(".")] = 'ipv4'
+            #puts "... using auto-generated private static IP ['#{hostname}']: #{netnames.key('ipv4')}"
+          end
+          #+HINT: expand short names to fqdn's
+          netnames.select{|k, v| v == 'short'}.each do |netalias, nettype|
+            domain_suffix_list.each { |sfx| netnames[netalias + '.' + sfx] = 'fqdn' if ['short'].include?(nettype) }
           end
         end
 
@@ -246,6 +240,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         
         machine.vm.provision :salt do |salt|
           # install minion
+          salt.bootsrap_script = "srv/salt/fileserver/base.core/assets/exe_script/saltstack/bootstrap-salt.sh" if false #,TODO, lets get more specific here soon
           #salt.install_type = "stable" # opts: stable, git, daily, testing
           #salt.version = "" # opts: (string, default: "2017.7.1") - Version of minion to be installed.
           salt.log_level = "all" # options: all, garbage, trace, debug, info, warning
