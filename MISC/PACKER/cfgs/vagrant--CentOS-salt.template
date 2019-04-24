@@ -41,9 +41,11 @@
 	    "shutdown_command": "/sbin/halt -h -p",
 	    "vmx_data": {
 		"vhv.enable": "TRUE",
-		"numvcpus": "1",
-		"memsize": "512"
+		"cpuid.coresPerSocket": "{{ user `cores_per_socket` }}",
+		"memsize": "{{ user `memory` }}",
+		"numvcpus": "{{ user `cpu_cores` }}"
 	    },
+	    "vmx_remove_ethernet_interfaces": true,
 	    "ssh_wait_timeout": "10000s",
 	    "ssh_port": 22,
 	    "ssh_username": "{{user `login_user`}}",

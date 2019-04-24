@@ -4,16 +4,18 @@
 
 
 
-## NOTES
-##  - uses alternate top_state file at top_PROVISION.sls
-##  - Packer uses Salts implicit defaults for file_roots and pillar_roots
+##_META:
+##  Applicability:
+##    - soft assumption: ['G@os:CentOS', 'G@osmajorrelease:7', 'I@machine_role:salt_master']
+##  Notes:
+##    - uses alternate top_state file at top_PROVISION.sls
+##    - Packer uses Salts implicit defaults for file_roots and pillar_roots
+##
 
 
 
 ## Minion Configs #
-
 state_top: top_PROVISION.sls
-
 grains:
   onduty: True
   machine_class: server

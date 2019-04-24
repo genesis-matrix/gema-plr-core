@@ -15,9 +15,7 @@
 
 
 ## Minion Configs #
-
 state_top: top_PROVISION.sls
-
 grains:
   onduty: True
   dutyinfo:

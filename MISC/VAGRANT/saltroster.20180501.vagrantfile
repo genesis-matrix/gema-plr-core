@@ -1,5 +1,4 @@
-# coding: utf-8
-# -*- mode: ruby -*-
+# -*- coding: utf-8; mode: ruby -*-
 # # vi: set ft=ruby :
 
 ### Objectives:
@@ -47,7 +46,11 @@ defaults = {'basebox_image' => 'centos/7', 'ram' => 512 }
 domain_suffix_list = ["localdomain", "vagrant.test", "test"]
 #+REF: https://github.com/mitchellh/vagrant/issues/1867
 #+REF: https://www.vagrantup.com/docs/providers/configuration.html
-provider_image_map = {["libvirt"] => "qemu", ["vmware_desktop", "vmware_fusion", "vmware_workstation"] => "vmware-iso", ["parallels"] => "parallels-iso", ["virtualbox"] => "virtualbox-iso"}
+provider_image_map = {}
+provider_image_map.merge!({["libvirt"] => "qemu"}) if Vagrant.has_plugin?("vagrant-libvirt")
+provider_image_map.merge!({["vmware_desktop", "vmware_fusion", "vmware_workstation"] => "vmware-iso"}) if Vagrant.has_plugin?("vagrant-vmware-desktop")
+provider_image_map.merge!({["virtualbox"] => "virtualbox-iso"})
+provider_image_map.merge!({["parallels"] => "parallels-iso"}) if Vagrant.has_plugin?("vagrant-parallels")
 provider_lst_fn = lambda {|x| ret = [] ; for i in x.keys do ret.push(i.first) ; end ; return ret}
 provider_lst = provider_lst_fn.call(provider_image_map)
 
