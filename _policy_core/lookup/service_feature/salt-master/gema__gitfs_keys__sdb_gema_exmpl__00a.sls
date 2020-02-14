@@ -35,7 +35,7 @@ sdb_handle in __stack__['traverse'](stack, 'lookup:minion_nodegroup').items() if
 salt:
   gitfs:
     keys:
-      {% for secret in __stack__['traverse'](stack, 'lookup:minion_nodegroup:SECRETS__sdb_gema_exmpl__00a:sdb_gema_exmpl__00a:entries') if secret.startswith('sshkey_') %}
+      {% for secret in __stack__['traverse'](stack, 'lookup:minion_nodegroup:SECRETS__sdb_gema_exmpl__00a:sdb_gema_exmpl__00a:entries', []) if secret.startswith('sshkey_') %}
       {{ secret.split('_')[2:-1]|join('_') }}:
       {% if secret.split('_')[-1] in ['b64'] %}
         #
