@@ -68,7 +68,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provider "vmware_fusion"
   config.vm.provider "virtualbox"
 
-  
+
   # Plugin: vagrant-vlan, https://github.com/rtkwlf/vagrant-vlan (status: planning)
   # Plugin: for DNS, landrush https://github.com/phinze/landrush
   #+NB: add DHCP device last in order to capture Landrush's machine entries
@@ -77,7 +77,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #       properly w/ more than one dhcp nic b/c requisite
   #       config changes are spread between the multiple
   #       devices
-  #+NB: (ex.) dig -p 10053 @localhost myhost.vagrant.dev        
+  #+NB: (ex.) dig -p 10053 @localhost myhost.vagrant.dev
 
   if Vagrant.has_plugin? 'landrush'
     #+NB: (ex.) dig -p 10053 @localhost myhost.vagrant.test
@@ -105,7 +105,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     machine_roles       = value['minion_opts']['grains']['machine_role']       ||= []
     is_minion           = machine_roles.include?('salt_minion') ? true : false
     is_syndic           = machine_roles.include?('salt_syndic') ? true : false
-    is_master           = machine_roles.include?('salt_master') ? true : false    
+    is_master           = machine_roles.include?('salt_master') ? true : false
     is_highstate_capable        = machine_roles.include?('highstate_capable') ? true : false
     is_orchestrate_capable      = machine_roles.include?('orchestrate_capable') ? true : false
     is_vagrant_provisioned      = machine_roles.include?('vagrant_provisioned') ? true : false
@@ -210,7 +210,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         machine.vm.provision :salt do |salt|
           # install minion
           salt.log_level = "all" # options: all, garbage, trace, debug, info, warning
-          salt.colorize = true 
+          salt.colorize = true
           #salt.pillar({"food_groupings" => { "apple" => "fruit", "broccoli" => "veggie"}})
           #+HINT: where the 'salt' CNAME is used by the master, the minion should join w/o config
           salt.install_type = "stable"
@@ -278,6 +278,3 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 end
-
-
-

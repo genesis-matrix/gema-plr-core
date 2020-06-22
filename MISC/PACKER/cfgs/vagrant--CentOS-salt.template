@@ -120,6 +120,6 @@
 	    ],
 	    "http_directory": "{{user `http_directory`}}",
 	    "type": "parallels-iso"
-	}	
+	}
     ]
 }

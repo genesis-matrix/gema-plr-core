@@ -14,4 +14,3 @@
 ## - include default-value: <not-defined>
 #default_include: master.d/*.conf
 include: master.d/*.conf
-

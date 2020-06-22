@@ -23,6 +23,6 @@ salt:
         - root: kubernetes
         - base: master
 
-      
+
 
 ## EOF

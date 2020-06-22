@@ -1,6 +1,6 @@
 ##
 ##
-## 
+##
 
 ## DESC:
 ##  - https://docs.saltstack.com/en/stage/ref/renderers/all/salt.renderers.gpg.html
@@ -22,4 +22,3 @@
 ##
 
 renderer: jinja | yaml | gpg
-

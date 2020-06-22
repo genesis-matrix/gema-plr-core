@@ -54,7 +54,7 @@ label:
     ## append states to the minions highstate
     salt-minion:
       ? gema__highstate_append__sync-all-modules
-      ? gema__highstate_append__salt_DOT_master      
+      ? gema__highstate_append__salt_DOT_master
       ? gema__highstate_append__salt_DOT_formulas
 
 

@@ -32,7 +32,7 @@ lookup:
             docker-host
         secondary_lookups: &secondary_lookups
           sls_path: []
-            
+
   # extended lookups
   <<: *secondary_lookups
 

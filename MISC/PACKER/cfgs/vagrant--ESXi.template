@@ -25,7 +25,7 @@
 		"ethernet0.addressType": "generated",
 		"ethernet0.generatedAddressOffset": "0",
 		"ethernet0.wakeOnPcktRcv": "FALSE",
-		
+
 		"memsize": "4096",
 		"numvcpus": "2",
 		"vhv.enable": "TRUE"

@@ -88,7 +88,7 @@ qc-cent6-d1:
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
 
-  
+
 
 #
 qc-cent7-d1:
@@ -102,7 +102,7 @@ qc-cent7-d1:
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
 
-  
+
 
 #
 qc-cent7-d2:
@@ -115,7 +115,7 @@ qc-cent7-d2:
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
 
-  
+
 
 #
 qc-cent7-d3:
@@ -128,7 +128,7 @@ qc-cent7-d3:
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
 
-  
+
 
 #
 qc-cent8-d3:
@@ -141,7 +141,7 @@ qc-cent8-d3:
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
 
-  
+
 
 #
 qc-u1810-d1:
@@ -155,7 +155,7 @@ qc-u1810-d1:
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
 
-  
+
 
 #
 qc-u1910-d1:
@@ -168,7 +168,7 @@ qc-u1910-d1:
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
 
-  
+
 
 #
 qc-win10-d1:

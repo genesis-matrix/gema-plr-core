@@ -24,7 +24,7 @@ sdb_handle in __stack__['traverse'](stack, 'lookup:minion_nodegroup').items() if
       - {%- for entry in __stack__['traverse'](stack, 'lookup:minion_nodegroup:SECRETS__sdb_gema_exmpl__00a:sdb_gema_exmpl__00a:entries') if entry.startswith("%s_%s"|format("sshkey", "prv")) %}
       {{ entry }}
       {% endfor %}
-      
+
 {% set secrets_dct = __stack__['traverse'](stack, 'lookup:minion_nodegroup:SECRETS__') %}
 #}
 ## </JINJA>
@@ -47,7 +47,7 @@ salt:
           {{ __stack__['traverse'](stack, 'lookup:minion_nodegroup:SECRETS__sdb_gema_exmpl__00a:sdb_gema_exmpl__00a:entries:' ~ secret) }}
       {% endif %}
       {% endfor %}
-      
+
 
 
 ## EOF

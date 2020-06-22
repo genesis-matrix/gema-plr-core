@@ -19,7 +19,7 @@ salt_formulas:
   list:
     base:
       - rsyslog-formula
- 
- 
+
+
 
 ## EOF

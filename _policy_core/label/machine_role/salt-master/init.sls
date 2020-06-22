@@ -16,7 +16,7 @@
 
 #
 labels:
-  machine_role: 
+  machine_role:
     - salt-minion
     - salt-master
 

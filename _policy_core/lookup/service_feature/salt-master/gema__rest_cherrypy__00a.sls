@@ -180,7 +180,7 @@ lookup:
           "64d86321-415b-461a-9f78-727b1c7ca650"
             module.run:
               - tls.create_self_signed_cert: []
-                
+
 
 
 # enable salt-api (tornado) via the salt-formula

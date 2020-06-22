@@ -25,7 +25,7 @@
 
 
 
-# 
+#
 {%- if diskusage_match_dct is mapping and diskusage_match_dct|length() >= 1 %}
 beacons:
   diskusage:

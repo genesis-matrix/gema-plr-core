@@ -75,7 +75,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provider provider
   end
 
-  
+
   # Plugin: vagrant-vlan, https://github.com/rtkwlf/vagrant-vlan (status: planning)
 
   #+HINT: Determine the DNS / Name Resolution Plugin to use
@@ -99,7 +99,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     #       properly w/ more than one dhcp nic b/c requisite
     #       config changes are spread between the multiple
     #       devices
-    #+NB: (ex.) dig -p 10053 @localhost myhost.vagrant.dev        
+    #+NB: (ex.) dig -p 10053 @localhost myhost.vagrant.dev
     _resolv_sys = 'landrush'
     config.landrush.tld = domain_suffix_list[0]
     config.landrush.enabled = true
@@ -127,7 +127,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     machine_roles       = value['minion_opts']['grains']['machine_role']  ||= []
     is_minion           = machine_roles.include?('salt_minion') ? true : false
     is_syndic           = machine_roles.include?('salt_syndic') ? true : false
-    is_master           = machine_roles.include?('salt_master') ? true : false    
+    is_master           = machine_roles.include?('salt_master') ? true : false
     is_highstate_capable        = machine_roles.include?('highstate_capable')   ? true : false
     is_orchestrate_capable      = machine_roles.include?('orchestrate_capable') ? true : false
     is_vagrant_provisioned      = machine_roles.include?('vagrant_provisioned') ? true : false
@@ -223,12 +223,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             #+HINT: landrush.host { <host> <ip> | <alias> <host> }
             # machine entry
             if (netalias.upcase != hostname.upcase && ['short', 'fqdn'].include?(nettype) ) then
-              #machine.landrush.host(netalias) 
+              #machine.landrush.host(netalias)
               #puts "   ... landrush adds dynamic netalias: #{netalias}"
             end
             # static entry
             if ['ipv4', 'ipv6'].include?(nettype) then
-              machine.landrush.host(hostname, netalias) 
+              machine.landrush.host(hostname, netalias)
               #puts "   ... landrush adds static netalias: #{netalias}"
               #machine.vm.network "private_network", ip: netalias, :adapter=>3
               #"    ... added DNS entry: #{hostname} => #{netalias}"
@@ -240,14 +240,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           end
         end
 
-        
+
         machine.vm.provision :salt do |salt|
           # install minion
           salt.bootsrap_script = "srv/salt/fileserver/base.core/assets/exe_script/saltstack/bootstrap-salt.sh" if false #,TODO, lets get more specific here soon
           #salt.install_type = "stable" # opts: stable, git, daily, testing
           #salt.version = "" # opts: (string, default: "2017.7.1") - Version of minion to be installed.
           salt.log_level = "all" # options: all, garbage, trace, debug, info, warning
-          salt.colorize = true 
+          salt.colorize = true
           #salt.pillar({"food_groupings" => { "apple" => "fruit", "broccoli" => "veggie"}})
           #+HINT: where the 'salt' CNAME is used by the master, the minion should join w/o config
 
@@ -280,7 +280,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
                                    for i in /srv/salt/{pillar,fileserver} ;do
                                        mkdir -p ${i}
                                        cd ${i}
-                                       for x in $(find /vagrant${i}/* -maxdepth 1) ;do 
+                                       for x in $(find /vagrant${i}/* -maxdepth 1) ;do
                                            ln -f -s $(readlink -f ${x}) $(basename ${x})
                                        done
                                    done

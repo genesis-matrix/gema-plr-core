@@ -47,7 +47,7 @@ lookup:
       {{ meta.name.handle }}:
         _meta: {{ meta }}
         entries: {{ secrets_dct }}
- 
+
 
 
 ## EOF
