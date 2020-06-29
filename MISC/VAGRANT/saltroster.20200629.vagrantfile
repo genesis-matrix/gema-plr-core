@@ -1,0 +1,383 @@
+# -*- coding: utf-8; mode: ruby -*-
+# # vi: set ft=ruby :
+
+### Objectives:
+# - [X] VMs should answer to their Roster "handles" on a DHCP-assigned address
+# - [X] VMs should answer to their Roster "handles" + any Vagrant-specified domain suffixes for convenient network access from hypervisor host
+# - [X] Where Rosters use FQDNs for addressability, the VM should answer on a DHCP-assigned address
+# - [ ] Where Rosters use network address for address-ability, the address should be plumbed to the network device
+# - [-] Where a box recipe is available via packer, but is not built and registered by vagrant, vagrant will build the box using packer on reference
+###
+
+
+### References:
+# - https://www.vagrantup.com/docs/provisioning/salt.html
+###
+
+
+### NOTES:
+#Changes:
+#  - 20180501, forked Vagrantfile to accamodate Vagrant v2.10 which introduces native trigger capability and breaks compatibility w/ the existing 'vagrant-triggers' plugin.
+#  - plugins: landrush, vagrant-hosts
+###
+
+
+### Example from ./etc/salt/roster
+# demo-minion-t1:
+#   host: 10.0.1.140
+#   user: vagrant
+#   passwd: vagrant
+#   sudo: True
+#   tty: True
+#   minion_opts:
+#     grains:
+#       machine_class: server
+#       onduty: True
+#       basebox_image: gema-CentOS-6.7-x86_64
+#       deploy_env: LAB
+#       machine_role: ['salt_minion', 'highstate_capable', 'vagrant_provisioned']
+###
+
+
+
+# Specify minimum Vagrant version and Vagrant API version
+Vagrant.require_version ">= 2.1.0"
+VAGRANTFILE_API_VERSION = "2"
+
+
+#+TODO: refactor the following variables out of this file and into a more appropriate place
+## User-Defined Variables
+defaults = {'basebox_image' => 'centos/7', 'ram' => 512, 'supplemental_disks' => [] }
+domain_suffix_list = ["localdomain", "vagrant.test", "test"]
+#+REF: https://github.com/mitchellh/vagrant/issues/1867
+#+REF: https://www.vagrantup.com/docs/providers/configuration.html
+provider_image_map = {}
+provider_image_map.merge!({["libvirt"] => "qemu"}) if Vagrant.has_plugin?("vagrant-libvirt")
+provider_image_map.merge!({["vmware_desktop", "vmware_fusion", "vmware_workstation"] => "vmware-iso"}) if Vagrant.has_plugin?("vagrant-vmware-desktop")
+provider_image_map.merge!({["virtualbox"] => "virtualbox-iso"})
+provider_image_map.merge!({["parallels"] => "parallels-iso"}) if Vagrant.has_plugin?("vagrant-parallels")
+provider_lst_fn = lambda {|x| ret = [] ; for i in x.keys do ret.push(i.first) ; end ; return ret}
+provider_lst = provider_lst_fn.call(provider_image_map)
+
+# Require YAML module
+require 'yaml'
+
+
+# Read YAML file with box details
+roster = YAML.load_file(File.expand_path(__dir__ + '/../SALT/roster'))
+
+
+# Validate IP Addrs from strings
+require 'resolv'
+
+
+# Create boxes
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+
+  # set provider preference order, ie: Prefer VMware, when available, before VirtualBox
+  provider_lst.each do |provider|
+    config.vm.provider provider
+  end
+
+  
+  # Plugin: vagrant-vlan, https://github.com/rtkwlf/vagrant-vlan (status: planning)
+
+  #+HINT: Determine the DNS / Name Resolution Plugin to use
+  _resolv_sys = ENV["VAGRANT_RESOLV_SYS"] ? ENV["VAGRANT_RESOLV_SYS"] : nil
+  if false then
+  elsif _resolv_sys == "vagrant-hostmanager" or Vagrant.has_plugin? 'vagrant-hostmanager' then
+    # https://github.com/devopsgroup-io/vagrant-hostmanager
+    #,NOTE, recent versions (as of 1.8.9) work w/ dynamic IPs, where previously requiring static IPs
+    _resolv_sys = 'vagrant-hostmanager'
+    config.hostmanager.enabled = true
+    config.hostmanager.manage_host = true
+    config.hostmanager.manage_guest = true
+    config.hostmanager.ignore_private_ip = false
+    config.hostmanager.include_offline = true
+  elsif  _resolv_sys == 'landrush' or Vagrant.has_plugin? 'landrush' then
+    # https://github.com/vagrant-landrush/landrush
+    # Plugin: for DNS, landrush https://github.com/phinze/landrush
+    #+NB: add DHCP device last in order to capture Landrush's machine entries
+    #+NB: landrush will add it's own dhcp nic
+    #+NB: landrush guest-vm DNS resolution will fail to work
+    #       properly w/ more than one dhcp nic b/c requisite
+    #       config changes are spread between the multiple
+    #       devices
+    #+NB: (ex.) dig -p 10053 @localhost myhost.vagrant.dev        
+    _resolv_sys = 'landrush'
+    config.landrush.tld = domain_suffix_list[0]
+    config.landrush.enabled = true
+    config.landrush.guest_redirect_dns = true # serve/redir landrush DNS to guests
+    config.landrush.host_redirect_dns = true # make guest DNS names available from host
+  elsif _resolv_sys == 'vagrant-hosts' or Vagrant.has_plugin? 'vagrant-hosts' then
+    # https://github.com/oscar-stack/vagrant-hosts
+    _resolv_sys = 'vagrant-hosts'
+  elsif _resolv_sys == 'vagrant-dns' or Vagrant.hasp_lugin? 'vagrant-dns' then
+    # https://github.com/BerlinVagrant/vagrant-dns
+    #+WARN: vagrant-dns only supports OSX hosts
+  end
+
+
+  # Iterate through entries in YAML file
+  roster.each_pair do |hostname, value|
+    # parse YAML for roster entry
+    netnames            = Array.new
+    host_addr           = value['host']
+    machine_class       = value['minion_opts']['grains']['machine_class'] ||= "server"
+    basebox_image       = value['minion_opts']['grains']['basebox_image'] ||= defaults['basebox_image']
+    basebox_image       = ENV["VAGRANT_BASEBOX_IMAGE"]                    ||= basebox_image
+    onduty              = !!value['minion_opts']['grains']['onduty']      ||= false
+    deploy_env          = value['minion_opts']['grains']['deploy_env']    ||= "LAB"
+    opt_desc            = value['minion_opts']['grains']['opt_desc']  ||= []
+    machine_roles       = value['minion_opts']['grains']['machine_role']  ||= []
+    is_minion           = machine_roles.include?('salt_minion') ? true : false
+    is_syndic           = machine_roles.include?('salt_syndic') ? true : false
+    is_master           = machine_roles.include?('salt_master') ? true : false    
+    is_highstate_capable        = machine_roles.include?('highstate_capable')   ? true : false
+    is_orchestrate_capable      = machine_roles.include?('orchestrate_capable') ? true : false
+    is_vagrant_provisioned      = machine_roles.include?('vagrant_provisioned') ? true : false
+    alloc_ram           = value['minion_opts']['grains']['provision_alloc']['ram'] if value['minion_opts']['grains']['provision_alloc'] and value['minion_opts']['grains']['provision_alloc']['ram'] ||= alloc_ram = defaults['ram']
+    supplemental_disks           = value['minion_opts']['grains']['provision_alloc']['supplemental_disks'] if value['minion_opts']['grains']['provision_alloc'] and value['minion_opts']['grains']['provision_alloc']['supplemental_disks'] ||= addl_disks = defaults['supplemental_disks']
+
+
+    if machine_class.include?("server")
+
+      # instantiate vagrant vm object
+      config.vm.define hostname, autostart: onduty  do |machine|
+        #+WIP: provision by device type, default: server
+        machine.vm.box = basebox_image
+        machine.vm.hostname = hostname
+        #machine.vm.synced_folder '.', '/vagrant', disabled: true
+        machine.vm.synced_folder '.', '/vagrant', type: "sshfs" if Vagrant.has_plugin? 'vagrant-sshfs'
+
+        # DNS Management
+        if _resolv_sys then
+          #+HINT: Collect a map of the various forms of hostnames for this VM instance
+          netnames         = {hostname => 'short'}
+          netnames['salt'] = 'short' if is_master
+
+          #+NTS: inverting this hash might make more sense
+          # Q: is 'host' an IP address?
+          if !!(host_addr =~ Resolv::IPv4::Regex) then
+            netnames[host_addr] = 'ipv4'
+          elsif !!(host_addr =~ Resolv::IPv6::Regex) then
+            netnames[host_addr] = 'ipv6'
+          elsif host_addr.is_a?(String) then
+            # Q: suspected of being a FQDN?
+            netnames[host_addr] = host_addr.include?(".") ? 'fqdn' : 'short'
+            ### Lacking a pre-assigned IP, attempt to deterministically generate one ###
+            # setup address in 192.168.x.x range (least likely to collide externally, most likely to collide internally)
+            # netnames[["192", "168",
+            #           (host_addr.upcase.split(".").first.split("-").first + host_addr.upcase.split(".").first.split("-").last[0]).bytes.reduce(:+) % 256,
+            #           host_addr.upcase.bytes.reduce(:+) % 254 + 2
+            #          ].join(".")] = 'ipv4'
+            # setup address in 10.x.x.x range (least likely to collide internally, most likely to collide externally)
+            # netnames[["10",
+            #           (host_addr.upcase.split(".").first.split("-").first + host_addr.upcase.split(".").first.split("-").last[0]).bytes.reduce(:+) % 155 + 100,
+            #           host_addr.upcase.split(".").first.split("-")[1, host_addr.split(".").first.split("-").length - 2].first.bytes.reduce(:+) % 205 + 50,
+            #           host_addr.upcase.bytes.reduce(:+) % 255 + 1
+            #          ].join(".")] = 'ipv4'
+            #puts "... using auto-generated private static IP ['#{hostname}']: #{netnames.key('ipv4')}"
+          end
+          #+HINT: expand short names to fqdn's
+          netnames.select{|k, v| v == 'short'}.each do |netalias, nettype|
+            domain_suffix_list.each { |sfx| netnames[netalias + '.' + sfx] = 'fqdn' if ['short'].include?(nettype) }
+          end
+        end
+
+
+        #machine.vm.network "private_network", type: "dhcp"
+        machine.vm.network "private_network", ip: netnames.key("ipv4"), :adapter=>2 if netnames.key("ipv4")
+
+
+        #,ref: https://stackoverflow.com/a/1347626
+        provider_lst.each do |provider|
+          machine.vm.provider provider do |_,override|
+            _.memory = alloc_ram
+            # supplemental disks (setup is provider-specific)
+            if provider == "libvirt" then
+              # https://github.com/vagrant-libvirt/vagrant-libvirt#additional-disks
+              for disk in supplemental_disks do
+                if disk.has_key?("device") then 
+                  if disk["device"].is_a?(String) and disk["device"] =~ /^[a-z]+$/ then
+                    _.storage :file, :size => disk.size, :device => disk["device"]
+                  else
+                    puts "ERR: #{hostname} has an invalid value for disk.device == #{disk['device']}"
+                  end
+                else
+                  _.storage :file, :size => disk.size
+                end
+              end
+            end
+            # on-demand image build using Packer
+            if basebox_image.match('^gema-') then
+              machine.trigger.before :up do |trigger|
+                #+TODO: this needs more safety and validity checks to prevent breaks in existing functionality
+                image_virttype = provider_image_map.select {|k,v| k.include? provider }.first.last
+                trigger.info = "verifying availability of box: hypervisor=#{image_virttype}, image=#{basebox_image}"
+                trigger.info = "   ... the VM image will be created if non-existent and buildable."
+                trigger.run = { inline: "  make gema-preflightcheck-vm-present-#{image_virttype}--#{basebox_image}" }
+              end
+            end
+          end
+        end
+
+
+        # Plugin: for DNS, vagrant-hostmanager https://github.com/devopsgroup-io/vagrant-hostmanager
+        if false then
+        elsif _resolv_sys == 'vagrant-hostmanager' then
+          #machine.vm.provision :hostmanager
+          machine.hostmanager.aliases = netnames.select{|k,v| v == 'short' or v == 'fqdn' }.keys
+        #puts "   ... DNS/vagrant-hostmanager adds dynamic netalias: #{netnames.keys}"
+        # Plugin: for DNS, landrush https://github.com/phinze/landrush
+        # Plugin: for DNS, vagrant-hosts https://github.com/oscar-stack/vagrant-hosts
+        elsif _resolv_sys == 'vagrant-hosts' then
+          #"    ... using the 'vagrant-hosts' DNS system"
+          machine.vm.provision :hosts do |hosts|
+	    hosts.sync_hosts = true
+            hosts.autoconfigure = true
+            #puts "hosts.add_host #{netnames.key('ipv4')}, #{netnames.select{|k,v| v == 'short' or v == 'fqdn'}.keys}"
+            hosts.add_host netnames.key('ipv4'), netnames.select{|k,v| v == 'short' or v == 'fqdn'}.keys
+          end
+        elsif _resolv_sys == 'landrush' then
+          #"    ... using the 'landrush' DNS system"
+          netnames.each do |netalias, nettype|
+            #+HINT: landrush.host { <host> <ip> | <alias> <host> }
+            # machine entry
+            if (netalias.upcase != hostname.upcase && ['short', 'fqdn'].include?(nettype) ) then
+              #machine.landrush.host(netalias) 
+              #puts "   ... landrush adds dynamic netalias: #{netalias}"
+            end
+            # static entry
+            if ['ipv4', 'ipv6'].include?(nettype) then
+              machine.landrush.host(hostname, netalias) 
+              #puts "   ... landrush adds static netalias: #{netalias}"
+              #machine.vm.network "private_network", ip: netalias, :adapter=>3
+              #"    ... added DNS entry: #{hostname} => #{netalias}"
+            end
+          end
+          if Vagrant.has_plugin? 'landrush-ip'
+            machine.landrush_ip.override = true
+            machine.landrush_ip.auto_install = true
+          end
+        end
+
+        
+        machine.vm.provision :salt do |salt|
+          # install minion
+          salt.bootsrap_script = "srv/salt/fileserver/base.core/assets/exe_script/saltstack/bootstrap-salt.sh" if false #,TODO, lets get more specific here soon
+          salt.bootstrap_options = " -x python3 " if opt_desc.include?('use_py3')
+          #salt.install_type = "stable" # opts: stable, git, daily, testing
+          #salt.version = "" # opts: (string, default: "2017.7.1") - Version of minion to be installed.
+          salt.log_level = "all" # options: all, garbage, trace, debug, info, warning
+          salt.colorize = true 
+          #salt.pillar({"food_groupings" => { "apple" => "fruit", "broccoli" => "veggie"}})
+          #+HINT: where the 'salt' CNAME is used by the master, the minion should join w/o config
+
+          salt.run_highstate = true  if (is_minion and is_highstate_capable)
+          salt.install_master = true if is_master
+          salt.install_syndic = true if is_syndic
+          machine.vm.provision "shell", inline: <<-EOF
+                                        echo "(salt-minion) update minion.d symlinks, restart minion service"
+                                        echo "   nb, there's no assumption that the minion is joined to a master at this point"
+                                        mkdir -p /etc/salt/minion.d && cd /etc/salt/minion.d \
+                                        && (find . -type l -delete || true) \
+                                        && find /vagrant/etc/salt/minion.d/ -iname "*.conf" -print0 |xargs -0 -n1 -r readlink -f |xargs -n1 -r ln -f -s
+                                        echo "(salt-minion) clear minion_master key"
+                                        rm -f /etc/salt/pki/minion/minion_master.pub
+                                        salt-call --local --retcode-passthrough service.restart salt-minion --out=txt --out-indent=2 || true ; sleep 3
+                                 EOF
+        end
+
+        if is_master then
+          machine.trigger.after :provision do |trigger|
+            trigger.name = "(salt-master) pause, accept pending keys"
+            trigger.run_remote = { inline: 'sleep 15 ; salt-key -Ay --out-indent=2 || true ; sleep 3' }
+          end
+          machine.trigger.after :provision do |trigger|
+            trigger.name = "(salt-master) update master symlinks"
+            trigger.run_remote = { inline: <<-EOF
+                                   find /etc/salt/master.d /srv/salt/{pillar,fileserver} -maxdepth 1 -type l -delete 2>/dev/null || true
+                                   mkdir -p /etc/salt/master.d
+                                   cd /etc/salt/master.d && find /vagrant/etc/salt/master.d/ -iname "*.conf" -print0 |xargs -0 -n1 -r readlink -f |xargs -n1 -r ln -f -s
+                                   for i in /srv/salt/{pillar,fileserver} ;do
+                                       mkdir -p ${i}
+                                       cd ${i}
+                                       for x in $(find /vagrant${i}/* -maxdepth 1) ;do 
+                                           ln -f -s $(readlink -f ${x}) $(basename ${x})
+                                       done
+                                   done
+                                   salt-call --local --retcode-passthrough service.restart salt-master --out=txt --out-indent=2 && sleep 6
+                                   EOF
+                                 }
+          end
+          machine.trigger.after :provision do |trigger|
+            trigger.name = "(salt-master) install requisite software"
+            trigger.run_remote = { inline: <<-EOF
+                                   # if ! systemctl is-active salt-master ;then
+                                   #     echo "WRN: salt-master failed to start-up normally. As a fall-back, requisites will be loaded as local-mode templates."
+                                   #     salt-call --local --retcode-passthrough state.template tem=/srv/salt/fileserver/base.core/state/machine/software/python/mods-git/init.sls
+                                   #     salt-call --local --retcode-passthrough state.template tem=/srv/salt/fileserver/base.core/state/machine/software/salt-master/init.sls
+                                   #     salt-call --local --retcode-passthrough service.restart salt-master && sleep 6
+                                   # fi
+                                   salt-call --timeout=900 --retcode-passthrough state.apply state.machine.software.salt-master --out-indent=2
+                                   salt-call --timeout=900 --retcode-passthrough state.apply state.machine.software.python.mods-git --out-indent=2
+                                   EOF
+                                 }
+          end
+          if _resolv_sys == "vagrant-hosts" then
+            machine.trigger.after :provision do |trigger|
+              trigger.name = " (salt-master) adds vagrant-hosts support software"
+              trigger.run_remote = { inline: <<-EOF
+                                     #,HINT: net-tools is only included to help with the vagrant-hosts integration
+                                     salt-call --local state.single pkg.installed net-tools --out-indent=2
+                                     EOF
+                                   }
+            end
+          end
+          machine.trigger.after :provision do |trigger|
+            trigger.name = "(salt-master) ready/up master service"
+            trigger.run_remote = { inline: <<-EOF
+                                   salt-call --local --retcode-passthrough service.restart salt-master --out=txt --out-indent=2 && sleep 3
+                                   salt-call --timeout=900 --retcode-passthrough state.apply state.machine.service.salt-master --out-indent=2 || true
+                                   EOF
+                                 }
+          end
+          machine.trigger.after :provision do |trigger|
+            trigger.name = "(salt-master) refresh master policy (pillar and state) trees, sync modules, restart salt-master"
+            trigger.run_remote = { inline: <<-EOF
+                                   salt-call --local --timeout=900 --retcode-passthrough saltutil.refresh_pillar --out=txt --out-indent=2 && sleep 3
+                                   salt-run cache.clear_git_lock gitfs type=update
+                                   salt-run --timeout=900 fileserver.update --out=txt --out-indent=2 && sleep 3
+                                   EOF
+                                 }
+          end
+          machine.trigger.after :provision do |trigger|
+            trigger.name = "(salt-master) sync all modules for minion and master"
+            trigger.run_remote = { inline: 'salt-call saltutil.sync_all && salt-run saltutil.sync_all' }
+          end
+        end
+
+        if is_syndic then
+        end
+
+        if is_minion then
+          if is_highstate_capable then
+            machine.trigger.after :provision do |trigger|
+              trigger.name = "(salt-minion) apply state.service.salt-minion, apply highstate"
+              trigger.run_remote = { inline: '  sudo salt-call --timeout=900 state.apply state.machine.service.salt-minion --out-indent=2 && sudo salt-call state.highstate --out-indent=2' }
+            end
+          elsif
+            machine.trigger.after :provision do |trigger|
+              trigger.name = "(salt-minion) finalize minion"
+              trigger.info = "NB, if the machine is not highstate_capable there's no assumption that it's joined to a master during this provisioning phase"
+              trigger.run_remote = { inline: 'salt-call state.apply state.machine.service.salt-minion --out-indent=2 &' }
+            end
+          end
+        end
+      end
+
+    end
+  end
+end
