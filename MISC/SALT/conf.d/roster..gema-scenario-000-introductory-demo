@@ -18,7 +18,7 @@
 #         grains:
 #           onduty: False
 #           machine_class: server
-#           os_platform: linux  # among: ["linux", "windows"]
+#           os_platform: linux  # among: ["linux", "windows"], defaults to "linux"
 #           # hint: specifiy any boxes listed at https://app.vagrantup.com/boxes/search
 #           # hint: optionally override this by setting with the "VAGRANT_BASEBOX_IMAGE" environment variable
 #           basebox_image: centos/7
@@ -37,6 +37,7 @@ salt-master-d1:
       #startup_states: highstate
       onduty: True
       machine_class: server
+      os_platform: linux
       #basebox_image: gema-CentOSv7
       machine_role: ['salt_master', 'salt_minion']
       provision_alloc: {'ram': 1512}
@@ -50,6 +51,7 @@ salt-syndic-d1:
   minion_opts:
     grains:
       machine_class: server
+      os_platform: linux
       basebox_image: gema-CentOSv7
       machine_role: ['salt_master', 'salt_minion']
       provision_alloc: {'ram': 1512}
@@ -58,7 +60,7 @@ salt-syndic-d1:
 
 #
 ##
-### Generic Server Definitions
+### Quality Control Server Definitions
 ##
 #
 
@@ -71,6 +73,7 @@ salt-syndic-d1:
 ##    minion_opts:
 ##      grains:
 ##        machine_class: server
+##        os_platform: linux
 ##        basebox_image: centos/5
 ##        #+NB: 'machine_roles' temporarily vacated for testing purposes
 ##        provision_alloc: {'ram': 1512}
@@ -84,6 +87,7 @@ qc-cent6-d1:
   minion_opts:
     grains:
       machine_class: server
+      os_platform: linux
       basebox_image: centos/6
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
@@ -96,8 +100,9 @@ qc-cent7-d1:
   user: root
   minion_opts:
     grains:
-      onduty: true
+      #onduty: true
       machine_class: server
+      os_platform: linux
       basebox_image: centos/7
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
@@ -111,6 +116,7 @@ qc-cent7-d2:
   minion_opts:
     grains:
       machine_class: server
+      os_platform: linux
       basebox_image: centos/7
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
@@ -124,6 +130,7 @@ qc-cent7-d3:
   minion_opts:
     grains:
       machine_class: server
+      os_platform: linux
       basebox_image: centos/7
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
@@ -137,6 +144,7 @@ qc-cent8-d3:
   minion_opts:
     grains:
       machine_class: server
+      os_platform: linux
       basebox_image: centos/8
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
@@ -149,8 +157,9 @@ qc-u1810-d1:
   user: root
   minion_opts:
     grains:
-      onduty: true
+      #onduty: true
       machine_class: server
+      os_platform: linux
       basebox_image: ubuntu/cosmic64
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
@@ -164,6 +173,7 @@ qc-u1910-d1:
   minion_opts:
     grains:
       machine_class: server
+      os_platform: linux
       basebox_image: generic/ubuntu1910
       machine_roles: ['salt_minion', 'highstate_capable']
       provision_alloc: {'ram': 1512}
@@ -178,6 +188,7 @@ qc-win10-d1:
     grains:
       #startup_states: highstate
       machine_class: server
+      #onduty: True
       os_platform: windows
       basebox_image: peru/windows-10-enterprise-x64-eval
       machine_role: ['salt_minion']
@@ -192,7 +203,6 @@ qc-win19-d1:
   minion_opts:
     grains:
       #startup_states: highstate
-      onduty: true
       machine_class: server
       os_platform: windows
       basebox_image: peru/windows-server-2019-datacenter-x64-eval
@@ -203,7 +213,7 @@ qc-win19-d1:
 
 #
 ##
-### Purpose-Oriented Server Definitions
+### LOGS__DEV
 ##
 #
 
@@ -218,7 +228,7 @@ logs-graylg-d1:
       machine_class: server
       #basebox_image: gema-CentOSv7
       machine_role: ['salt_minion']
-      provision_alloc: {'ram': 1024}
+      provision_alloc: {'ram': 1024, 'supplemental_disks': [{'size': '45G'}]}
 
 
 
@@ -231,7 +241,7 @@ logs-graylg-d2:
       machine_class: server
       #basebox_image: gema-CentOSv7
       machine_role: ['salt_minion']
-      provision_alloc: {'ram': 1024}
+      provision_alloc: {'ram': 1024, 'supplemental_disks': [{'size': '45G'}]}
 
 
 
@@ -244,7 +254,7 @@ logs-graylg-d3:
       machine_class: server
       #basebox_image: gema-CentOSv7
       machine_role: ['salt_minion']
-      provision_alloc: {'ram': 1024}
+      provision_alloc: {'ram': 1024, 'supplemental_disks': [{'size': '45G'}]}
 
 
 
@@ -255,9 +265,9 @@ logs-es-d1:
   minion_opts:
     grains:
       machine_class: server
-      basebox_image: gema-CentOSv7
+      #basebox_image: gema-CentOSv7
       machine_role: ['salt_minion']
-      provision_alloc: {'ram': 1024}
+      provision_alloc: {'ram': 1536, 'supplemental_disks': [{'size': '45G'}]}
 
 
 
@@ -270,7 +280,7 @@ logs-es-d2:
       machine_class: server
       basebox_image: gema-CentOSv7
       machine_role: ['salt_minion']
-      provision_alloc: {'ram': 1024}
+      provision_alloc: {'ram': 1536, 'supplemental_disks': [{'size': '45G'}]}
 
 
 
@@ -283,7 +293,7 @@ logs-es-d3:
       machine_class: server
       basebox_image: gema-CentOSv7
       machine_role: ['salt_minion']
-      provision_alloc: {'ram': 1024}
+      provision_alloc: {'ram': 1536, 'supplemental_disks': [{'size': '45G'}]}
 
 
 
@@ -296,7 +306,7 @@ logs-routr-d1:
       machine_class: server
       basebox_image: gema-CentOSv7
       machine_role: ['salt_minion']
-      provision_alloc: {'ram': 1024}
+      provision_alloc: {'ram': 1024, 'supplemental_disks': [{'size': '20G'}]}
 
 
 
@@ -309,7 +319,7 @@ logs-routr-d2:
       machine_class: server
       basebox_image: gema-CentOSv7
       machine_role: ['salt_minion']
-      provision_alloc: {'ram': 1024}
+      provision_alloc: {'ram': 1024, 'supplemental_disks': [{'size': '20G'}]}
 
 
 
@@ -322,7 +332,15 @@ logs-routr-d3:
       machine_class: server
       basebox_image: gema-CentOSv7
       machine_role: ['salt_minion']
-      provision_alloc: {'ram': 1024}
+      provision_alloc: {'ram': 1024, 'supplemental_disks': [{'size': '20G'}]}
+
+
+
+#
+##
+### Misc. Purpose-Oriented Server Definitions
+##
+#
 
 
 
@@ -537,6 +555,19 @@ vcs-gitlab-d1:
 #
 vcs-artifactory-d1:
   host: vcs-artifactory-d1.vagrant.test
+  user: vagrant
+  minion_opts:
+    grains:
+      machine_class: server
+      basebox_image: gema-CentOSv7
+      machine_role: ['salt_minion']
+      provision_alloc: {'ram': 1512}
+
+
+
+#
+exmpl-web-d1:
+  host: exmpl-web-d1.vagrant.test
   user: vagrant
   minion_opts:
     grains:

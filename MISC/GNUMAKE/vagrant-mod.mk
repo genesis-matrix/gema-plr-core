@@ -1,7 +1,7 @@
 ### Makefile - Vagrant
 
 module_keys += vagrant
-.PHONY: vagrant-help vagrant-ssh vagrant-up vagrant-restart vagrant-down vagrant-clean vagrant-build vagrant-run
+.PHONY: vagrant-help vagrant-ssh vagrant-restart vagrant-down vagrant-clean vagrant-build vagrant-run
 
 vagrant-help:
 	## $@ ##
@@ -13,9 +13,6 @@ vagrant-chk: vagrant-chk-prereqs
 vagrant-chk-prereqs:
 	## $@ ##
 	@which vagrant >/dev/null || (echo "ERR: required program 'vagrant' not found. Please install/add it!" ; exit 3)
-vagrant-up:
-	## $@ ##
-	@vagrant up --parallel --provision
 vagrant-prep-%:
 	## $@ ##
 	@vagrant up $(@:vagrant-prep-%=%) && vagrant provision $(@:vagrant-prep-%=%)
@@ -55,13 +52,6 @@ vagrant-finish: vagrant-dnsresolv-off
 	## $@ ##
 
 vagrant-die:
-	## $@ ##
-
-vagrant-build: vagrant-up
-	## $@ ##
-vagrant-run: vagrant-up
-	## $@ ##
-vagrant-debug: vagrant-up
 	## $@ ##
 
 
