@@ -72,7 +72,7 @@ require 'yaml'
 
 
 # Read YAML file with box details
-roster = YAML.load_file(File.expand_path(__dir__ + '/../SALT/roster'))
+roster = YAML.load_file(File.expand_path(File.dirname(File.readlink(__FILE__)) + '/../salt/roster'))
 
 
 # Validate IP Addrs from strings
