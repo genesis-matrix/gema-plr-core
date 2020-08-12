@@ -15,10 +15,8 @@
 
 
 #
-labels:
-  machine_role: 
-    - salt-minion
-    - salt-master
+osenv:
+  driver: env
 
 
 

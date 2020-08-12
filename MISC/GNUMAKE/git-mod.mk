@@ -26,6 +26,8 @@ scm-repo-update:
 	## $@ ##
 	@git remote update
 	@git remote show -n origin
+scm-repo-update-all: scm-repo-update scm-smod-all-update
+	## $@ ##
 scm-repo-status: scm-repo-update
 	## $@ ##
 	@git branch -vv

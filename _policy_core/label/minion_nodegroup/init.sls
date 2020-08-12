@@ -35,7 +35,7 @@
   - will copy the list of memeber nodegroups from 'nodegroups' to 'label:minion_nodegroup'
   - this additional step allows adherency with two design promises:
     - pillarstack will (only) examine the 'label' namespace for instruction
-    - ...???...
+    - ...???... 
 #}
 
 

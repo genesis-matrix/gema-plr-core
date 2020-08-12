@@ -135,8 +135,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # exit immediately if a requested VM's os_platform isn't supported
     abort("ERROR: VM #{hostname}'s requested os_platform '#{os_platform}' not found in list of supported os platforms '#{os_platform_list}'") if not os_platform_list.include?(os_platform)               
     machine_class       = value['minion_opts']['grains']['machine_class'] ||= "server"
-    basebox_image       = value['minion_opts']['grains']['basebox_image'] ||= defaults['basebox_image']
-    basebox_image       = ENV["VAGRANT_BASEBOX_IMAGE"]                    ||= basebox_image
+    basebox_image       = ENV["VAGRANT_BASEBOX_IMAGE"]                    ? ENV["VAGRANT_BASEBOX_IMAGE"] : nil
+    basebox_image       = basebox_image                                   ? basebox_image : value['minion_opts']['grains']['basebox_image']
+    basebox_image       = basebox_image                                   ? basebox_image : defaults['basebox_image']
     onduty              = !!value['minion_opts']['grains']['onduty']      ||= false
     deploy_env          = value['minion_opts']['grains']['deploy_env']    ||= "LAB"
     opt_desc            = value['minion_opts']['grains']['opt_desc']  ||= []
@@ -155,11 +156,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       # instantiate vagrant vm object
       config.vm.define hostname, autostart: onduty  do |machine|
-        #+WIP: provision by device type, default: server
+        #.WIP: provision by device type, default: server
         machine.vm.box = basebox_image
-        machine.vm.hostname = hostname
-        #machine.vm.synced_folder '.', '/vagrant', disabled: true
-        machine.vm.synced_folder '.', '/vagrant', type: "sshfs" if Vagrant.has_plugin? 'vagrant-sshfs'
+        #.HINT: setup os_platform-specific configurations
+        if (os_platform == "windows") then
+          machine.vm.guest = :windows # defaults to ':linux' when not set
+          machine.vm.communicator = "winrm" # defaults to 'ssh' when not set
+          machine.vm.synced_folder '.', '/vagrant', disabled: true # SMB isn't supported from Linux hosts :(
+          #.REF: https://www.vagrantup.com/docs/synced-folders/smb.html
+          #machine.vm.synced_folder '.', '/vagrant', type: "smb"
+          #machine.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: ".git/"
+        elsif (os_platform == "linux") then
+          machine.vm.synced_folder '.', '/vagrant', type: "sshfs" if (Vagrant.has_plugin? 'vagrant-sshfs' and os_platform == "linux")
+        end
+
 
         # DNS Management
         if _resolv_sys then
@@ -276,8 +286,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
         machine.vm.provision :salt do |salt|
           # install minion
+          salt.python_version = "3" if os_platform == "windows"
           salt.bootstrap_options = "" #.NOTE: initialize as empty string
           salt.bootstrap_options += " -x python3 " unless opt_desc.include?('use_py2') # use py3 by default
+
           #salt.bootsrap_script = "srv/salt/fileserver/base.core/assets/exe_script/saltstack/bootstrap-salt.sh" if false #,TODO, lets get more specific here soon
           #salt.install_type = "stable" # opts: stable, git, daily, testing
           #salt.version = "" # opts: (string, default: "2017.7.1") - Version of minion to be installed.

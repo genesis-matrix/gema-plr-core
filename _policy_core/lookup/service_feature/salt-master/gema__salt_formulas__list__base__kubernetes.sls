@@ -18,7 +18,7 @@
 salt_formulas:
   list:
     base:
-      - rsyslog-formula
+      - kubernetes-formula
  
  
 

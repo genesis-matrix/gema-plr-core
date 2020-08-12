@@ -15,10 +15,9 @@
 
 
 #
-labels:
-  machine_role: 
-    - salt-minion
-    - salt-master
+lookup:
+  sls_path:
+    - salt.gitfs.pygit2
 
 
 

@@ -23,6 +23,7 @@ salt:
         - /srv/salt/pillar/base.core/pillarstack.cfg
         - /srv/salt/pillar/base.core/pillarstack.cfg
         - /srv/salt/pillar/base.core/pillarstack.cfg
+        - /srv/salt/pillar/base.core/pillarstack.cfg
 
 
 

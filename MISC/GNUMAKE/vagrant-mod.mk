@@ -13,10 +13,20 @@ vagrant-chk: vagrant-chk-prereqs
 vagrant-chk-prereqs:
 	## $@ ##
 	@which vagrant >/dev/null || (echo "ERR: required program 'vagrant' not found. Please install/add it!" ; exit 3)
+vagrant-status:
+	## $@ ##
+	@vagrant status
+vagrant-global-status:
+	## $@ ##
+	@vagrant global-status
 vagrant-prep-%:
 	## $@ ##
 	@vagrant up $(@:vagrant-prep-%=%) && vagrant provision $(@:vagrant-prep-%=%)
 	-@sleep 5 ; vagrant ssh salt-master-d1 -c 'sudo salt-key -ya $(@:vagrant-prep-%=%)'
+vagrant-provision:
+	@vagrant provision
+vagrant-provision-%:
+	@vagrant provision $(@:vagrant-provision-%=%)
 vagrant-ssh-%:
 	@vagrant ssh $(@:vagrant-ssh-%=%) -c 'sudo -i'
 vagrant-into-%: vagrant-prep-% vagrant-ssh-%

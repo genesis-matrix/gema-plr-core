@@ -44,7 +44,7 @@ lookup:
                   "test.nop":
                     - name: this is a demo of a fully pillar-defined state file
             - state.machine._spec.minset-configs: []
-
+            
   # extended lookups
   <<: *secondary_lookups
 

@@ -19,7 +19,7 @@ salt:
   master:
     ext_pillar:
       - __: merge-last
-      - gitstack:
+      - gitstack: 
           branch: master
           repo: https://github.com/genesis-matrix/gema-plr-core
           stack:
@@ -29,5 +29,5 @@ salt:
             - pillarstack.cfg
 
 
-
+          
 ## EOF

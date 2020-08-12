@@ -15,11 +15,11 @@
 
 
 #
-labels:
-  machine_role: 
-    - salt-minion
-    - salt-master
-
-
+salt_formulas:
+  list:
+    base:
+      - salt-formula
+ 
+ 
 
 ## EOF

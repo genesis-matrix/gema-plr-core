@@ -31,7 +31,7 @@ lookup:
           machine_role:
             docker-host
         secondary_lookups: &secondary_lookups
-          sls_path: []
+          sls_path: [] 
 
   # extended lookups
   <<: *secondary_lookups

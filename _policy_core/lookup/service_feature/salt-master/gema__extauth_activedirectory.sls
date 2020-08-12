@@ -21,13 +21,13 @@
     }
   }
 %}
-
+    
 
 ## </JINJA>
 
 
 
-#
+# 
 salt:
   master:
     auth.ldap.activedirectory: True
