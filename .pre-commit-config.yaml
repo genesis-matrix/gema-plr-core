@@ -13,10 +13,11 @@ repos:
             args: [--fix=lf]
             language_version: python3
           - id: end-of-file-fixer # Makes sure files end in a newline and only a newline.
-        # exclude: tests/fake_.*\.key
+            # exclude: tests/fake_.*\.key
             language_version: python3
           - id: check-ast         # Simply check whether files parse as valid python.
             language_version: python3
+          - id: check-toml
           - id: check-yaml
           - id: check-json
           - id: check-symlinks
@@ -41,6 +42,16 @@ repos:
       rev: master
       hooks:
           - id: dead
+    - repo: https://github.com/awslabs/git-secrets
+      rev: master
+      hooks:
+          - id: git-secrets
+    - repo: https://github.com/Yelp/detect-secrets
+      rev: v0.14.2
+      hooks:
+          - id: detect-secrets
+            #args: [--baseline, .secrets.baseline]
+            #exclude: .*/tests/.*
     - repo: https://github.com/jumanjihouse/pre-commit-hooks
       rev: master
       hooks:
