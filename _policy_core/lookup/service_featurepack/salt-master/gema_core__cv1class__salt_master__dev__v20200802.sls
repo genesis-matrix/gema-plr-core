@@ -36,6 +36,7 @@ label:
       ## formulas
       ? gema__salt_formulas__git_opts__default
       ? gema__salt_formulas__list__base__salt
+      ? gema__salt_formulas__list__base__packages
       ? gema__salt_formulas__list__base__kubernetes
       ## pillar
       ? gema__ext_pillar__config__ext_pillar_first
