@@ -30,19 +30,19 @@ Prerequisites:
 lookup:
   sls_path:
     - state._.pillar-splat:
-      stanza_dct:
-        "e9bd6795-8d66-4e48-b658-1074c5deff4b":
-          pkg.installed:
-            - pkgs:
-              - python36-mysql
-            - require_in:
-              - sls: mysql
+        stanza_dct:
+          "e9bd6795-8d66-4e48-b658-1074c5deff4b":
+            pkg.installed:
+              - pkgs:
+                - python36-mysql
+              - require_in:
+                 - sls: mysql
     - mysql
     - mysql.remove_test_database
     - mysql.salt-user
     - mysql.database
     - mysql.user
-    - salt-api
+    - salt.api
     - alcali
 
 
@@ -214,7 +214,7 @@ alcali:
     name: 'config.wsgi:application'
     host: '0.0.0.0'
     port: 5000
-    workers: {{ grains['num_cpus'] }}
+    workers: {{ __grains__['num_cpus'] }}
   # All the items under this section will be converted into an environment file.
   config:
     db_backend: mysql
