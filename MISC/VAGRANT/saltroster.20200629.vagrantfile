@@ -158,6 +158,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.define hostname, autostart: onduty  do |machine|
         #.WIP: provision by device type, default: server
         machine.vm.box = basebox_image
+        machine.vm.hostname = hostname
         #.HINT: setup os_platform-specific configurations
         if (os_platform == "windows") then
           machine.vm.guest = :windows # defaults to ':linux' when not set
